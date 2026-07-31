@@ -115,11 +115,18 @@ export function Composer({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
-    files.forEach((file) => {
+    const maxAllowed = 4;
+    const currentCount = images.length;
+    if (currentCount >= maxAllowed) {
+      e.target.value = "";
+      return;
+    }
+    const filesToProcess = files.slice(0, maxAllowed - currentCount);
+    filesToProcess.forEach((file) => {
       const reader = new FileReader();
       reader.onload = (ev) => {
         const url = ev.target?.result as string;
-        setImages((prev) => [...prev, url]);
+        setImages((prev) => (prev.length < maxAllowed ? [...prev, url] : prev));
       };
       reader.readAsDataURL(file);
     });
@@ -356,10 +363,18 @@ export function Composer({
               />
 
               <ToolButton
-                label="Attach image"
-                onClick={() => fileInputRef.current?.click()}
+                label={images.length >= 4 ? "Max 4 images reached" : "Attach image (max 4)"}
+                onClick={() => {
+                  if (images.length < 4) fileInputRef.current?.click();
+                }}
+                disabled={images.length >= 4}
               >
-                <ImageIcon className="h-4 w-4" />
+                <div className="flex items-center gap-1">
+                  <ImageIcon className={cn("h-4 w-4", images.length >= 4 && "opacity-40 cursor-not-allowed")} />
+                  {images.length > 0 && (
+                    <span className="font-mono text-[10px] text-primary">{images.length}/4</span>
+                  )}
+                </div>
               </ToolButton>
 
               <ToolButton
@@ -451,20 +466,24 @@ function ToolButton({
   label,
   onClick,
   active,
+  disabled,
 }: {
   children: ReactNode;
   label: string;
   onClick?: () => void;
   active?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       aria-label={label}
       onClick={onClick}
+      disabled={disabled}
       className={cn(
         "rounded-md p-1.5 transition-colors hover:bg-accent/60 hover:text-primary cursor-pointer",
-        active && "text-primary bg-primary/10"
+        active && "text-primary bg-primary/10",
+        disabled && "opacity-50 cursor-not-allowed hover:bg-transparent hover:text-muted-foreground"
       )}
     >
       {children}

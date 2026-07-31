@@ -336,71 +336,188 @@ function MediaBlock({ media }: { media: PostMedia | PostMedia[] }) {
 }
 
 function SingleMediaBlock({ media }: { media: PostMedia }) {
-  const [activeImage, setActiveImage] = useState<{ url: string; alt?: string } | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [lightboxState, setLightboxState] = useState<{
+    isOpen: boolean;
+    images: Array<{ url: string; alt?: string }>;
+    index: number;
+  }>({
+    isOpen: false,
+    images: [],
+    index: 0,
+  });
 
-  const copyCode = () => {
-    if (media.kind === "code") {
-      navigator.clipboard.writeText(media.code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+  const [isIdeMinimized, setIsIdeMinimized] = useState(true);
+  const [copiedCode, setCopiedCode] = useState(false);
+
+  const openLightbox = (images: Array<{ url: string; alt?: string }>, index: number) => {
+    setLightboxState({ isOpen: true, images, index });
+  };
+
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
   };
 
   return (
     <>
-      <Lightbox
-        src={activeImage?.url ?? null}
-        alt={activeImage?.alt}
-        onClose={() => setActiveImage(null)}
-      />
+      {lightboxState.isOpen && (
+        <Lightbox
+          images={lightboxState.images}
+          initialIndex={lightboxState.index}
+          onClose={() => setLightboxState({ isOpen: false, images: [], index: 0 })}
+        />
+      )}
 
+      {/* ── Single Image ── */}
       {media.kind === "image" && (
         <div
           onClick={(e) => {
             e.stopPropagation();
-            setActiveImage({ url: media.url, alt: media.alt });
+            openLightbox([{ url: media.url, alt: media.alt }], 0);
           }}
-          className="overflow-hidden rounded-lg border border-border/70 cursor-pointer group"
+          className="overflow-hidden rounded-xl border border-border/70 cursor-pointer group max-h-[450px] bg-black/30"
         >
           <img
             src={media.url}
             alt={media.alt}
             loading="lazy"
-            className="aspect-[16/10] w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            className="w-full max-h-[450px] object-cover transition-transform duration-300 group-hover:scale-[1.01]"
           />
         </div>
       )}
 
-      {media.kind === "image-grid" && (
-        <div className="grid grid-cols-2 gap-1 overflow-hidden rounded-lg border border-border/70">
-          {media.images.slice(0, 4).map((img, i) => (
+      {/* ── Multi-Image Grid (Match X Layout for 2, 3, 4 images) ── */}
+      {media.kind === "image-grid" && (() => {
+        const imgs = media.images.slice(0, 4);
+        const count = imgs.length;
+
+        if (count === 1) {
+          return (
             <div
-              key={i}
               onClick={(e) => {
                 e.stopPropagation();
-                setActiveImage({ url: img.url, alt: img.alt });
+                openLightbox(imgs, 0);
               }}
-              className="overflow-hidden cursor-pointer group"
+              className="overflow-hidden rounded-xl border border-border/70 cursor-pointer group max-h-[450px] bg-black/30"
             >
               <img
-                src={img.url}
-                alt={img.alt}
+                src={imgs[0].url}
+                alt={imgs[0].alt}
                 loading="lazy"
-                className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                className="w-full max-h-[450px] object-cover transition-transform duration-300 group-hover:scale-[1.01]"
               />
             </div>
-          ))}
-        </div>
-      )}
+          );
+        }
 
+        if (count === 2) {
+          return (
+            <div className="grid grid-cols-2 gap-0.5 overflow-hidden rounded-xl border border-border/70">
+              {imgs.map((img, i) => (
+                <div
+                  key={i}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openLightbox(imgs, i);
+                  }}
+                  className="aspect-[7/8] overflow-hidden cursor-pointer group bg-muted/20"
+                >
+                  <img
+                    src={img.url}
+                    alt={img.alt}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                  />
+                </div>
+              ))}
+            </div>
+          );
+        }
+
+        if (count === 3) {
+          return (
+            <div className="grid grid-cols-2 gap-0.5 overflow-hidden rounded-xl border border-border/70 aspect-[16/9] sm:aspect-[2/1]">
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openLightbox(imgs, 0);
+                }}
+                className="h-full overflow-hidden cursor-pointer group bg-muted/20"
+              >
+                <img
+                  src={imgs[0].url}
+                  alt={imgs[0].alt}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                />
+              </div>
+              <div className="grid grid-rows-2 gap-0.5 h-full">
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openLightbox(imgs, 1);
+                  }}
+                  className="h-full overflow-hidden cursor-pointer group bg-muted/20"
+                >
+                  <img
+                    src={imgs[1].url}
+                    alt={imgs[1].alt}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                  />
+                </div>
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openLightbox(imgs, 2);
+                  }}
+                  className="h-full overflow-hidden cursor-pointer group bg-muted/20"
+                >
+                  <img
+                    src={imgs[2].url}
+                    alt={imgs[2].alt}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                  />
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        // 4 images (2x2 grid)
+        return (
+          <div className="grid grid-cols-2 gap-0.5 overflow-hidden rounded-xl border border-border/70 aspect-[16/9] sm:aspect-[2/1]">
+            {imgs.map((img, i) => (
+              <div
+                key={i}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openLightbox(imgs, i);
+                }}
+                className="h-full overflow-hidden cursor-pointer group bg-muted/20"
+              >
+                <img
+                  src={img.url}
+                  alt={img.alt}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                />
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
+      {/* ── Video Media ── */}
       {media.kind === "video" && (
         <div
           onClick={(e) => {
             e.stopPropagation();
-            setActiveImage({ url: media.thumbnail, alt: media.title });
+            openLightbox([{ url: media.thumbnail, alt: media.title }], 0);
           }}
-          className="relative overflow-hidden rounded-lg border border-border/70 cursor-pointer group"
+          className="relative overflow-hidden rounded-xl border border-border/70 cursor-pointer group"
         >
           <img
             src={media.thumbnail}
@@ -419,43 +536,66 @@ function SingleMediaBlock({ media }: { media: PostMedia }) {
         </div>
       )}
 
+      {/* ── Code / IDE Media (Defaults to MINIMIZED, NO 3 dots) ── */}
       {media.kind === "code" && (
-        <div className="flex flex-col overflow-hidden rounded-md border border-border/70 bg-[#0d0d0d] shadow-sm">
-          <div className="flex items-center justify-between border-b border-border/40 bg-muted/10 px-3 py-1.5">
-            <div className="flex items-center gap-1.5">
-              <div className="h-2 w-2 rounded-full bg-destructive/80" />
-              <div className="h-2 w-2 rounded-full bg-yellow-500/80" />
-              <div className="h-2 w-2 rounded-full bg-primary/80" />
-              <span className="ml-2 font-mono text-[10px] text-muted-foreground">
-                {media.language || "code"}
+        <div className="flex flex-col overflow-hidden rounded-md border border-border/70 bg-[#0d0d0d] shadow-sm my-1">
+          {/* Header Bar — Prompt & Minimize/Expand toggle, NO 3 dots */}
+          <div className="flex items-center justify-between border-b border-border/40 bg-muted/10 px-3 py-2">
+            <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
+              <span className="font-mono text-xs text-primary font-semibold flex items-center gap-1 shrink-0">
+                <span className="text-muted-foreground">{">"}</span>prompt:
+              </span>
+              <span className="font-mono text-xs text-foreground/80 truncate">
+                {media.code.split("\n")[0] ? `"${media.code.split("\n")[0].slice(0, 50)}..."` : `snippet.${media.language || "code"}`}
+              </span>
+              <span className="font-mono text-[10px] text-muted-foreground/70 shrink-0">
+                [{media.language || "code"}]
               </span>
             </div>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                copyCode();
-              }}
-              className="font-mono text-[10px] text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-            >
-              {copied ? "✓ copied" : "copy"}
-            </button>
-          </div>
-          <div className="flex bg-[#0d0d0d]">
-            <div className="flex w-8 shrink-0 flex-col items-end border-r border-zinc-800 bg-zinc-900/50 py-3 pr-2 font-mono text-[13px] text-zinc-500 select-none pointer-events-none">
-              {media.code.split("\n").map((_, i) => (
-                <span key={i} className="leading-relaxed">
-                  {i + 1}
-                </span>
-              ))}
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  copyCode(media.code);
+                }}
+                className="rounded bg-accent/40 px-2 py-0.5 font-mono text-[10px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
+              >
+                {copiedCode ? "✓ copied" : "copy code"}
+              </button>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsIdeMinimized((prev) => !prev);
+                }}
+                className="font-mono text-[11px] text-primary hover:underline cursor-pointer"
+              >
+                {isIdeMinimized ? "□ expand" : "_ minimize"}
+              </button>
             </div>
-            <pre
-              className="flex-1 overflow-x-auto p-3 font-mono text-[13px] leading-relaxed text-zinc-100 scrollbar-none"
-              aria-label={`${media.language} code block`}
-            >
-              <code>{media.code}</code>
-            </pre>
           </div>
+
+          {/* Code Body (only shown when NOT minimized) */}
+          {!isIdeMinimized && (
+            <div className="flex bg-[#0a0a0c]">
+              <div className="flex w-9 shrink-0 flex-col items-end border-r border-border/30 bg-muted/10 py-3 pr-2 font-mono text-[13px] text-muted-foreground/40 pointer-events-none select-none overflow-hidden">
+                {Array.from({ length: media.code.split("\n").length }).map((_, i) => (
+                  <span key={i} className="leading-relaxed shrink-0">
+                    {i + 1}
+                  </span>
+                ))}
+              </div>
+              <pre
+                className="flex-1 overflow-x-auto p-3 font-mono text-[13px] leading-relaxed text-emerald-400 scrollbar-none"
+                aria-label={`${media.language} code block`}
+              >
+                <code>{media.code}</code>
+              </pre>
+            </div>
+          )}
         </div>
       )}
     </>
