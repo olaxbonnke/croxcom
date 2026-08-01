@@ -46,6 +46,22 @@ export async function signInWithGitHub() {
 }
 
 /**
+ * Sign in with Google OAuth
+ */
+export async function signInWithGoogle() {
+  if (!isSupabaseConfigured) {
+    console.warn("Supabase not configured: using mock fallback authentication.");
+    return { data: { provider: "google", url: null }, error: null };
+  }
+  return await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${window.location.origin}/`,
+    },
+  });
+}
+
+/**
  * Sign Out
  */
 export async function signOutSupabase() {

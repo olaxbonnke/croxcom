@@ -5,6 +5,7 @@ import {
   isSupabaseConfigured,
   signInWithEmail,
   signInWithGitHub,
+  signInWithGoogle,
   signOutSupabase,
   upsertProfile,
   fetchProfile,
@@ -23,7 +24,7 @@ interface AuthContextType {
   hasCompletedOnboarding: boolean;
   currentUser: MockUser;
   onboardingDetails?: OnboardingDetails;
-  login: (provider: "email" | "github", email?: string) => Promise<void> | void;
+  login: (provider: "email" | "github" | "google", email?: string) => Promise<void> | void;
   logout: () => Promise<void> | void;
   completeOnboarding: (details: OnboardingDetails) => void;
   updateUser: (user: Partial<MockUser>) => void;
@@ -151,14 +152,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, hasCompletedOnboarding, onboardingDetails]);
 
-  const login = async (provider: "email" | "github", email?: string) => {
+  const login = async (provider: "email" | "github" | "google", email?: string) => {
     setIsAuthenticated(true);
     setHasCompletedOnboarding(false);
-
 
     if (isSupabaseConfigured) {
       if (provider === "github") {
         await signInWithGitHub();
+      } else if (provider === "google") {
+        await signInWithGoogle();
       } else if (email) {
         await signInWithEmail(email);
       }
