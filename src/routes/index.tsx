@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AppShell } from "@/components/layout/AppShell";
@@ -6,10 +6,11 @@ import { TopBar } from "@/components/layout/TopBar";
 import { Composer } from "@/components/feed/Composer";
 import { PostCard } from "@/components/feed/PostCard";
 import { FeedSkeleton } from "@/components/feed/Skeleton";
-import { mockUsers, mockCommunities, type PostMedia } from "@/data/mock";
+import { mockCommunities, type PostMedia } from "@/data/mock";
 import { usePosts } from "@/hooks/usePosts";
+import { useAuth } from "@/lib/AuthContext";
 import { useCommunities as useCommunityCtx } from "@/lib/CommunityContext";
-import { TrendingUp, Newspaper, Users, ExternalLink, Sparkles, Plus, X } from "lucide-react";
+import { TrendingUp, Newspaper, Users, ExternalLink, Sparkles, Plus, X, MessageSquare } from "lucide-react";
 
 // ─── Mock AI / Dev News for Trend tab ─────────────────────────────────────────
 const AI_NEWS = [
@@ -77,9 +78,20 @@ export const Route = createFileRoute("/")({
 });
 
 function FeedPage() {
+  const navigate = useNavigate();
+  const { isAuthenticated, hasCompletedOnboarding, currentUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"Trend" | "Following" | "Communities">("Trend");
   const { posts, addPost } = usePosts();
+
+  // Visitor Auth Routing Guard
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate({ to: "/auth" });
+    } else if (!hasCompletedOnboarding) {
+      navigate({ to: "/auth" });
+    }
+  }, [isAuthenticated, hasCompletedOnboarding, navigate]);
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 250);
@@ -111,7 +123,7 @@ function FeedPage() {
 
     addPost({
       id: `local-${Date.now()}`,
-      author: mockUsers[0],
+      author: currentUser,
       time: "Just now",
       body,
       tags,
@@ -119,6 +131,7 @@ function FeedPage() {
       ...(finalMedia ? { media: finalMedia } : {}),
     });
   };
+
 
   // Build interleaved Trend feed: mix community posts with news and ads
   const trendItems: Array<
@@ -282,19 +295,31 @@ function FeedPage() {
                 />
               </div>
 
-              {posts.map((post) => (
-                <motion.div
-                  key={post.id}
-                  layout
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <PostCard post={post} />
-                </motion.div>
-              ))}
+              {posts.length > 0 ? (
+                posts.map((post) => (
+                  <motion.div
+                    key={post.id}
+                    layout
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <PostCard post={post} />
+                  </motion.div>
+                ))
+              ) : (
+                <div className="px-4 py-12 text-center">
+                  <div className="font-mono text-sm text-muted-foreground">
+                    $ feed --following --empty
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    No posts yet from developers you follow. Share an update above to get started!
+                  </p>
+                </div>
+              )}
             </motion.div>
           )}
+
 
           {/* ── Communities Tab ── */}
           {activeTab === "Communities" && <CommunitiesTab posts={posts} />}

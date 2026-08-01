@@ -33,12 +33,14 @@ const INTERESTS_LIST = [
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { isAuthenticated, hasCompletedOnboarding, login, completeOnboarding } = useAuth();
+  const { isAuthenticated, hasCompletedOnboarding, currentUser, login, completeOnboarding, updateUser } = useAuth();
 
   const [phase, setPhase] = useState<AuthPhase>("loading");
   const [email, setEmail] = useState("");
 
   // Onboarding state
+  const [displayName, setDisplayName] = useState(currentUser?.name || "");
+  const [userHandle, setUserHandle] = useState(currentUser?.handle || "");
   const [selectedTools, setSelectedTools] = useState<string[]>(["PyTorch", "vLLM"]);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([
     "Autonomous Agents",
@@ -46,6 +48,12 @@ function AuthPage() {
   ]);
   const [devPosition, setDevPosition] = useState<"Solo" | "Team">("Team");
   const [teamRole, setTeamRole] = useState("AI Infrastructure Engineer");
+
+  // Keep displayName and userHandle updated from currentUser
+  useEffect(() => {
+    if (currentUser?.name && !displayName) setDisplayName(currentUser.name);
+    if (currentUser?.handle && !userHandle) setUserHandle(currentUser.handle);
+  }, [currentUser]);
 
   // Step 1: Handle loading animation timeline (2s logo + slide out text)
   useEffect(() => {
@@ -77,6 +85,15 @@ function AuthPage() {
 
   const handleOnboardingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanHandle = (userHandle || email.split("@")[0] || "dev")
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, "_");
+
+    updateUser({
+      name: displayName.trim() || email.split("@")[0] || "AI Developer",
+      handle: cleanHandle,
+    });
+
     const details: OnboardingDetails = {
       preferences: selectedInterests,
       tools: selectedTools,
@@ -87,6 +104,7 @@ function AuthPage() {
     completeOnboarding(details);
     navigate({ to: "/" });
   };
+
 
   const toggleItem = (list: string[], setList: (l: string[]) => void, item: string) => {
     if (list.includes(item)) {
@@ -251,11 +269,45 @@ function AuthPage() {
             </div>
 
             <form onSubmit={handleOnboardingSubmit} className="space-y-5">
+              {/* Display Name & Unique Handle */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-mono text-xs text-muted-foreground mb-1">
+                    Display Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="e.g. Sarah Chen"
+                    className="w-full rounded-lg border border-border bg-background/80 px-3 py-2 font-mono text-sm text-foreground focus:border-primary focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block font-mono text-xs text-muted-foreground mb-1">
+                    Unique Handle (@username)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2 font-mono text-sm text-muted-foreground">@</span>
+                    <input
+                      type="text"
+                      required
+                      value={userHandle}
+                      onChange={(e) => setUserHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                      placeholder="sarah_ai"
+                      className="w-full rounded-lg border border-border bg-background/80 pl-7 pr-3 py-2 font-mono text-sm text-foreground focus:border-primary focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Tools Selection */}
               <div>
                 <label className="block font-mono text-xs text-muted-foreground mb-2">
                   1. Tools & Frameworks You Use
                 </label>
+
                 <div className="flex flex-wrap gap-2">
                   {TOOLS_LIST.map((tool) => {
                     const active = selectedTools.includes(tool);

@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       /* ignore */
     }
-    return true; // Default logged-in for demo smoothness
+    return false; // Default unauthenticated for real visitor onboarding flow
   });
 
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean>(() => {
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       /* ignore */
     }
-    return true;
+    return false; // Default uncompleted onboarding for new visitors
   });
 
   const [onboardingDetails, setOnboardingDetails] = useState<OnboardingDetails | undefined>(() => {
@@ -93,19 +93,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsAuthenticated(true);
         const sbUser = session.user;
         const profile = await fetchProfile(sbUser.id);
-        const name = profile?.name || sbUser.user_metadata?.full_name || sbUser.email?.split("@")[0] || "Developer";
-        const handle = profile?.handle || sbUser.user_metadata?.user_name || (sbUser.email?.split("@")[0] || "user").toLowerCase().replace(/[^a-z0-9_]/g, "_");
+        const emailPrefix = sbUser.email?.split("@")[0] || "user";
+        // Create unique handle from user email / metadata
+        const uniqueHandle = (
+          profile?.handle ||
+          sbUser.user_metadata?.user_name ||
+          `${emailPrefix.toLowerCase().replace(/[^a-z0-9_]/g, "_")}_${sbUser.id.slice(0, 4)}`
+        );
+        const name = profile?.name || sbUser.user_metadata?.full_name || emailPrefix || "AI Developer";
         const avatar = profile?.avatar || sbUser.user_metadata?.avatar_url || currentUser.avatar;
 
         const updatedUser: MockUser = {
           ...currentUser,
           id: sbUser.id,
           name,
-          handle,
+          handle: uniqueHandle,
           avatar,
         };
         setCurrentUser(updatedUser);
         localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(updatedUser));
+      } else if (event === "SIGNED_OUT") {
+        setIsAuthenticated(false);
+        setHasCompletedOnboarding(false);
+        localStorage.removeItem(AUTH_STORAGE_KEY);
+        localStorage.removeItem(USER_PROFILE_KEY);
       }
     });
 
@@ -128,6 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (provider: "email" | "github", email?: string) => {
     setIsAuthenticated(true);
     setHasCompletedOnboarding(false);
+
 
     if (isSupabaseConfigured) {
       if (provider === "github") {

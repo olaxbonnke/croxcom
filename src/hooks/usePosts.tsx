@@ -3,9 +3,10 @@
  *
  * Provides global post state, comments, likes, reposts, edits, and deletions.
  */
-import { createContext, useContext, useState, ReactNode, useCallback } from "react";
-import { mockPosts, mockComments, mockUsers, type MockPost, type MockComment } from "@/data/mock";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { type MockPost, type MockComment } from "@/data/mock";
 import { useAuth } from "@/lib/AuthContext";
+import { isSupabaseConfigured, fetchPostsSupabase, createPostSupabase } from "@/lib/supabase";
 
 type PostContextType = {
   posts: MockPost[];
@@ -30,18 +31,66 @@ type PostContextType = {
 
 const PostContext = createContext<PostContextType | undefined>(undefined);
 
+
 export function PostProvider({ children }: { children: ReactNode }) {
   const { currentUser } = useAuth();
-  const [posts, setPosts] = useState<MockPost[]>(mockPosts);
-  const [comments, setComments] = useState<MockComment[]>(mockComments);
+  const [posts, setPosts] = useState<MockPost[]>([]);
+  const [comments, setComments] = useState<MockComment[]>([]);
   const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
   const [repostedPostIds, setRepostedPostIds] = useState<Set<string>>(new Set());
   const [mutedUserHandles, setMutedUserHandles] = useState<Set<string>>(new Set());
   const [blockedUserHandles, setBlockedUserHandles] = useState<Set<string>>(new Set());
 
-  const addPost = useCallback((post: MockPost) => {
-    setPosts((prev) => [post, ...prev]);
+  // Load live posts from Supabase on mount
+  useEffect(() => {
+    async function loadLivePosts() {
+      if (isSupabaseConfigured) {
+        const sbPosts = await fetchPostsSupabase();
+        if (sbPosts && sbPosts.length > 0) {
+          const mappedPosts: MockPost[] = sbPosts.map((sp: Record<string, any>) => {
+            const profile = sp.profiles || {};
+            return {
+              id: sp.id,
+              author: {
+                id: sp.author_id,
+                name: profile.name || "AI Developer",
+                handle: profile.handle || "developer",
+                avatar: profile.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+                role: profile.role || "AI Developer",
+              },
+              time: new Date(sp.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+              body: sp.content,
+              tags: sp.tags || [],
+              stats: {
+                likes: sp.likes_count || 0,
+                comments: sp.comments_count || 0,
+                reposts: 0,
+              },
+            };
+          });
+          setPosts(mappedPosts);
+        }
+      }
+    }
+    loadLivePosts();
   }, []);
+
+  const addPost = useCallback(
+    async (post: MockPost) => {
+      setPosts((prev) => [post, ...prev]);
+
+      if (isSupabaseConfigured && currentUser?.id) {
+        await createPostSupabase({
+          title: post.body.slice(0, 50) || "New Post",
+          content: post.body,
+          tags: post.tags,
+          authorId: currentUser.id,
+        });
+      }
+    },
+    [currentUser?.id],
+  );
+
 
   const deletePost = useCallback((id: string) => {
     setPosts((prev) => prev.filter((p) => p.id !== id));
