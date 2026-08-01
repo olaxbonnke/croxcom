@@ -10,51 +10,8 @@ import { mockCommunities, type PostMedia } from "@/data/mock";
 import { usePosts } from "@/hooks/usePosts";
 import { useAuth } from "@/lib/AuthContext";
 import { useCommunities as useCommunityCtx } from "@/lib/CommunityContext";
+import { fetchLiveAINews, DEFAULT_AI_NEWS, type NewsArticle } from "@/lib/news";
 import { TrendingUp, Newspaper, Users, ExternalLink, Sparkles, Plus, X, MessageSquare } from "lucide-react";
-
-// ─── Mock AI / Dev News for Trend tab ─────────────────────────────────────────
-const AI_NEWS = [
-  {
-    id: "n1",
-    headline: "OpenAI announces GPT-5 architecture details",
-    summary:
-      "The new architecture features dynamic routing and an expanded context window, promising fewer hallucinations and better reasoning capabilities for complex tasks.",
-    source: "techcrunch.com",
-    time: "2h ago",
-    tag: "#llm",
-    imageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&q=80",
-  },
-  {
-    id: "n2",
-    headline: "Google DeepMind releases Gemini 2.0 Ultra benchmark results",
-    summary:
-      "Gemini 2.0 Ultra outperforms GPT-4o on 18 of 24 reasoning benchmarks, with notable gains in code generation and multimodal understanding.",
-    source: "deepmind.google",
-    time: "4h ago",
-    tag: "#gemini",
-    imageUrl: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=600&q=80",
-  },
-  {
-    id: "n3",
-    headline: "Meta releases Llama 3.2 with vision capabilities",
-    summary:
-      "The latest Llama model adds native image understanding while keeping the open-weights philosophy. 11B and 90B variants now available.",
-    source: "ai.meta.com",
-    time: "6h ago",
-    tag: "#openweights",
-    imageUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&q=80",
-  },
-  {
-    id: "n4",
-    headline: "Anthropic's Constitutional AI 2.0 paper published",
-    summary:
-      "New research shows scalable oversight through AI-generated critiques achieves alignment at 10× lower human annotation cost.",
-    source: "anthropic.com",
-    time: "1d ago",
-    tag: "#alignment",
-    imageUrl: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=600&q=80",
-  },
-];
 
 const ADS = [
   {
@@ -83,6 +40,18 @@ function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"Trend" | "Following" | "Communities">("Trend");
   const { posts, addPost } = usePosts();
+  const [aiNews, setAiNews] = useState<NewsArticle[]>(DEFAULT_AI_NEWS);
+
+  // Fetch live AI & Tech news from real APIs on mount
+  useEffect(() => {
+    async function loadNews() {
+      const live = await fetchLiveAINews();
+      if (live && live.length > 0) {
+        setAiNews(live);
+      }
+    }
+    loadNews();
+  }, []);
 
   // Visitor Auth Routing Guard
   useEffect(() => {
@@ -132,29 +101,36 @@ function FeedPage() {
     });
   };
 
-
-  // Build interleaved Trend feed: mix community posts with news and ads
+  // Build interleaved Trend feed: mix community posts with live news and ads
   const trendItems: Array<
     | { type: "post"; data: (typeof posts)[0] }
-    | { type: "news"; data: (typeof AI_NEWS)[0] }
+    | { type: "news"; data: NewsArticle }
     | { type: "ad"; data: (typeof ADS)[0] }
   > = [];
 
   let newsIdx = 0;
 
-  posts.forEach((post, i) => {
-    // Interleave news every 2 posts
-    if (i % 2 === 0 && newsIdx < AI_NEWS.length) {
-      trendItems.push({ type: "news", data: AI_NEWS[newsIdx++] });
-    }
-    trendItems.push({ type: "post", data: post });
+  // If no user posts yet, populate Trend feed with live AI & tech news!
+  if (posts.length === 0) {
+    aiNews.forEach((newsArticle) => {
+      trendItems.push({ type: "news", data: newsArticle });
+    });
+  } else {
+    posts.forEach((post, i) => {
+      // Interleave news every 2 posts
+      if (i % 2 === 0 && newsIdx < aiNews.length) {
+        trendItems.push({ type: "news", data: aiNews[newsIdx++] });
+      }
+      trendItems.push({ type: "post", data: post });
 
-    // Interleave ad after every 4 posts using cyclic ad index
-    if ((i + 1) % 4 === 0 && ADS.length > 0) {
-      const adIndex = Math.floor(i / 4) % ADS.length;
-      trendItems.push({ type: "ad", data: ADS[adIndex] });
-    }
-  });
+      // Interleave ad after every 4 posts using cyclic ad index
+      if ((i + 1) % 4 === 0 && ADS.length > 0) {
+        const adIndex = Math.floor(i / 4) % ADS.length;
+        trendItems.push({ type: "ad", data: ADS[adIndex] });
+      }
+    });
+  }
+
 
   return (
     <AppShell>
@@ -204,12 +180,15 @@ function FeedPage() {
 
                 if (item.type === "news") {
                   return (
-                    <motion.div
+                    <motion.a
                       key={`n-${item.data.id}`}
+                      href={item.data.url}
+                      target="_blank"
+                      rel="noreferrer"
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.03 }}
-                      className="group flex cursor-pointer items-start gap-3.5 bg-card/30 px-4 py-4 transition-colors hover:bg-accent/20"
+                      className="group flex cursor-pointer items-start gap-3.5 bg-card/30 px-4 py-4 transition-colors hover:bg-accent/20 border-b border-border/70"
                     >
                       <img
                         src={item.data.imageUrl}
@@ -219,7 +198,7 @@ function FeedPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-mono text-[9px] uppercase tracking-wider text-primary border border-primary/30 rounded px-1.5 py-0.5 bg-primary/10">
-                            AI News
+                            AI & Tech News
                           </span>
                           <span className="font-mono text-[10px] text-muted-foreground">
                             {item.data.tag}
@@ -239,9 +218,10 @@ function FeedPage() {
                           <ExternalLink className="ml-auto h-3 w-3 opacity-0 group-hover:opacity-60 transition-opacity" />
                         </div>
                       </div>
-                    </motion.div>
+                    </motion.a>
                   );
                 }
+
 
                 if (item.type === "ad") {
                   return (

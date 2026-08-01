@@ -1,14 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { mockCommunities, mockUsers, trending } from "@/data/mock";
-import { Search, X, User, MessageSquare, Compass } from "lucide-react";
+import { mockCommunities, mockUsers } from "@/data/mock";
+import { Search, X, User, MessageSquare, Compass, ExternalLink, Newspaper } from "lucide-react";
 import { usePosts } from "@/hooks/usePosts";
+import { fetchLiveAINews, DEFAULT_AI_NEWS, type NewsArticle } from "@/lib/news";
 
 export function RightRail() {
   const navigate = useNavigate();
   const { posts } = usePosts();
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
+  const [liveNews, setLiveNews] = useState<NewsArticle[]>(DEFAULT_AI_NEWS);
+
+  useEffect(() => {
+    async function loadLiveNews() {
+      const articles = await fetchLiveAINews();
+      if (articles && articles.length > 0) {
+        setLiveNews(articles);
+      }
+    }
+    loadLiveNews();
+  }, []);
 
   const matchedUsers = query.trim()
     ? mockUsers.filter(
@@ -150,29 +162,40 @@ export function RightRail() {
           )}
         </div>
 
-        {/* Trending in AI */}
+        {/* Live Trending in AI News */}
         <section className="rounded-lg border border-border/70 bg-card/60 backdrop-blur-sm">
-          <header className="border-b border-border/70 px-4 py-3">
-            <h2 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-              # trending in ai
+          <header className="border-b border-border/70 px-4 py-3 flex items-center justify-between">
+            <h2 className="font-mono text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Newspaper className="h-3.5 w-3.5 text-primary" />
+              <span># live ai & tech news</span>
             </h2>
           </header>
           <ul className="divide-y divide-border/60">
-            {trending.map((t) => (
-              <li key={t.topic}>
-                <button
-                  onClick={() =>
-                    navigate({ to: "/browse", search: { q: t.topic } as Record<string, string> })
-                  }
-                  className="flex w-full flex-col items-start px-4 py-2.5 text-left transition-colors hover:bg-accent/50 cursor-pointer"
+            {liveNews.slice(0, 5).map((article) => (
+              <li key={article.id}>
+                <a
+                  href={article.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group flex flex-col items-start px-4 py-2.5 text-left transition-colors hover:bg-accent/50 cursor-pointer"
                 >
-                  <span className="text-sm text-foreground">#{t.topic}</span>
-                  <span className="font-mono text-xs text-muted-foreground">{t.posts}</span>
-                </button>
+                  <div className="flex items-center gap-1.5 w-full">
+                    <span className="text-xs text-foreground font-medium group-hover:text-primary transition-colors line-clamp-1">
+                      {article.headline}
+                    </span>
+                    <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity ml-auto" />
+                  </div>
+                  <div className="flex items-center gap-2 font-mono text-[10px] text-muted-foreground mt-0.5">
+                    <span>{article.source}</span>
+                    <span>·</span>
+                    <span>{article.time}</span>
+                  </div>
+                </a>
               </li>
             ))}
           </ul>
         </section>
+
 
         {/* Suggested Communities */}
         <section className="rounded-lg border border-border/70 bg-card/60 backdrop-blur-sm">
