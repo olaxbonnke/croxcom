@@ -20,14 +20,17 @@ const cssFile =
 console.log("Detected Main JS asset:", mainJs);
 console.log("Detected CSS asset:", cssFile);
 
+// For GitHub Pages under /croxcom/ repo, base path must be /croxcom/ or relative assets/
+const basePath = "/croxcom/";
+
 const htmlContent = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>CroxCom — Community for AI Developers</title>
-    <link rel="icon" type="image/svg+xml" href="logo.svg" />
-    ${cssFile ? `<link rel="stylesheet" href="assets/${cssFile}" />` : ""}
+    <link rel="icon" type="image/svg+xml" href="${basePath}logo.svg" />
+    ${cssFile ? `<link rel="stylesheet" href="${basePath}assets/${cssFile}" />` : ""}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" />
@@ -46,7 +49,7 @@ const htmlContent = `<!DOCTYPE html>
   </head>
   <body class="bg-background text-foreground">
     <div id="root"></div>
-    ${mainJs ? `<script type="module" src="assets/${mainJs}"></script>` : ""}
+    ${mainJs ? `<script type="module" src="${basePath}assets/${mainJs}"></script>` : ""}
   </body>
 </html>`;
 
