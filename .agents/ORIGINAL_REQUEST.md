@@ -10,13 +10,16 @@ Integrity mode: development
 ## Requirements
 
 ### R1. Comprehensive Multi-Role Testing
+
 Run dedicated subagents across 4 roles:
+
 - Testing Agent: Verify all routes (/, /browse, /notifications, /messages, /bookmarks, /profile, /communities/$slug, /posts/$postId, /premium, /more, /design-system).
 - Browser Agent: Execute runtime verification of user interaction flows, modals, and tab switches.
 - Design Agent: Ensure visual consistency, glassmorphism, neon #00ff9f highlights, and dark/light mode integrity.
 - QA Agent: Enforce 0 TypeScript errors and 0 broken links.
 
 ### R2. Complete Feature & UX Verification
+
 - Post Composer & IDE: Verify separate IDE panel below main text, line numbers, language picker, minimize/restore/close buttons, and FileReader image uploads.
 - Feed Interleaving: Confirm Trend tab interleaves AI news, sponsored ads, and community posts naturally.
 - Link Previews & Lightbox: Verify LinkPreviewCard URL detection and full-screen Lightbox image viewer.

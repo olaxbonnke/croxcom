@@ -17,16 +17,8 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
       )}
       <div className="font-mono text-xs text-muted-foreground/50 mb-1">~/croxcom $</div>
       <h3 className="text-base font-medium text-foreground">{title}</h3>
-      {description && (
-        <p className="text-sm text-muted-foreground mt-1 max-w-xs">
-          {description}
-        </p>
-      )}
-      {action && (
-        <div className="mt-4">
-          {action}
-        </div>
-      )}
+      {description && <p className="text-sm text-muted-foreground mt-1 max-w-xs">{description}</p>}
+      {action && <div className="mt-4">{action}</div>}
     </div>
   );
 }

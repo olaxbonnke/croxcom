@@ -88,10 +88,12 @@ function DesignSystemPage() {
             </div>
             <div>
               <p className="text-[15px] leading-relaxed text-foreground">
-                We are building the terminal-inspired professional community platform for AI developers.
-                It's fast, minimal, and respects your attention.
+                We are building the terminal-inspired professional community platform for AI
+                developers. It's fast, minimal, and respects your attention.
               </p>
-              <p className="mt-1 font-mono text-xs text-muted-foreground">text-[15px] leading-relaxed (Body)</p>
+              <p className="mt-1 font-mono text-xs text-muted-foreground">
+                text-[15px] leading-relaxed (Body)
+              </p>
             </div>
             <div>
               <p className="font-mono text-sm text-foreground">$ npm run dev</p>

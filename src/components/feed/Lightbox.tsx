@@ -16,13 +16,16 @@ interface LightboxProps {
   onClose: () => void;
 }
 
-export function Lightbox({ src, alt = "Image preview", images, initialIndex = 0, onClose }: LightboxProps) {
+export function Lightbox({
+  src,
+  alt = "Image preview",
+  images,
+  initialIndex = 0,
+  onClose,
+}: LightboxProps) {
   // Normalize image list
-  const imageList: LightboxImage[] = images && images.length > 0
-    ? images
-    : src
-    ? [{ url: src, alt }]
-    : [];
+  const imageList: LightboxImage[] =
+    images && images.length > 0 ? images : src ? [{ url: src, alt }] : [];
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -190,9 +193,7 @@ export function Lightbox({ src, alt = "Image preview", images, initialIndex = 0,
               onClick={() => setCurrentIndex(i)}
               className={cn(
                 "h-2 rounded-full transition-all cursor-pointer",
-                i === currentIndex
-                  ? "w-6 bg-primary"
-                  : "w-2 bg-white/40 hover:bg-white/70"
+                i === currentIndex ? "w-6 bg-primary" : "w-2 bg-white/40 hover:bg-white/70",
               )}
             />
           ))}

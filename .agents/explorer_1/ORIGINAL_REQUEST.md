@@ -1,6 +1,8 @@
 ## 2026-07-23T13:00:00Z
+
 You are explorer_1 working in c:\Users\olait\Documents\My Coding\croxcom\.agents\explorer_1.
 Your objective:
+
 1. Conduct an initial audit of the codebase structure at `c:\Users\olait\Documents\My Coding\croxcom`.
 2. Inspect package.json, tsconfig.json, Vite/Next configuration, routing setup (App Router or React Router), and check all specified routes:
    - `/`

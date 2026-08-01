@@ -31,8 +31,10 @@ function CommunityPage() {
         <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
           <div className="font-mono text-4xl text-foreground font-bold mb-4">404</div>
           <div className="font-mono text-sm text-muted-foreground mb-6">community_not_found</div>
-          <button 
-            onClick={() => (window.history.length > 1 ? window.history.back() : navigate({ to: "/browse" }))}
+          <button
+            onClick={() =>
+              window.history.length > 1 ? window.history.back() : navigate({ to: "/browse" })
+            }
             className="flex items-center gap-2 font-mono text-sm text-primary hover:underline cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -43,7 +45,9 @@ function CommunityPage() {
     );
   }
 
-  const communityPosts = posts.filter((p) => p.community?.id === community.id || p.community?.slug === community.slug);
+  const communityPosts = posts.filter(
+    (p) => p.community?.id === community.id || p.community?.slug === community.slug,
+  );
 
   const handleCommunityPost = ({
     body,
@@ -86,17 +90,24 @@ function CommunityPage() {
       <div className="px-4 py-6 border-b border-border/70">
         <h1 className="font-mono text-xl font-bold text-foreground">/{community.name}</h1>
         <p className="text-sm text-muted-foreground mt-1">{community.description}</p>
-        
+
         <div className="mt-3 flex items-center gap-4 flex-wrap font-mono text-xs text-muted-foreground">
-          <span><span className="text-foreground font-medium">{community.members.toLocaleString()}</span> members</span>
-          <span><span className="text-foreground font-medium">2.1k</span> posts</span>
+          <span>
+            <span className="text-foreground font-medium">
+              {community.members.toLocaleString()}
+            </span>{" "}
+            members
+          </span>
+          <span>
+            <span className="text-foreground font-medium">2.1k</span> posts
+          </span>
         </div>
-        
+
         {community.tags && community.tags.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">
             {community.tags.map((tag) => (
-              <span 
-                key={tag} 
+              <span
+                key={tag}
                 className="inline-block rounded border border-border/70 bg-card px-1.5 py-0.5 text-[10px] text-muted-foreground font-mono"
               >
                 #{tag}
@@ -104,12 +115,12 @@ function CommunityPage() {
             ))}
           </div>
         )}
-        
+
         <button
           onClick={() => (joined ? leaveCommunity(community.id) : joinCommunity(community.id))}
           className={`mt-4 font-mono text-sm rounded-md px-5 py-2 transition-colors cursor-pointer ${
-            joined 
-              ? "border border-border/70 text-foreground hover:bg-card" 
+            joined
+              ? "border border-border/70 text-foreground hover:bg-card"
               : "bg-primary text-primary-foreground hover:opacity-90"
           }`}
         >
@@ -124,9 +135,7 @@ function CommunityPage() {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-3 relative ${
-              activeTab === tab 
-                ? "text-primary" 
-                : "text-muted-foreground hover:text-foreground"
+              activeTab === tab ? "text-primary" : "text-muted-foreground hover:text-foreground"
             }`}
           >
             {tab}
@@ -169,7 +178,7 @@ function CommunityPage() {
                 ))}
               </AnimatePresence>
             ) : (
-              <EmptyState 
+              <EmptyState
                 icon={<Inbox className="h-5 w-5" />}
                 title="No posts in this community yet"
                 description="Be the first one to start a discussion here."
@@ -189,13 +198,19 @@ function CommunityPage() {
               >
                 <div
                   className="grid h-9 w-9 shrink-0 place-items-center rounded-md font-mono text-xs"
-                  style={{ background: user.avatarColor, color: '#0a0a0a' }}
+                  style={{ background: user.avatarColor, color: "#0a0a0a" }}
                 >
-                  {user.name.split(' ').map(p => p[0]).join('').slice(0, 2)}
+                  {user.name
+                    .split(" ")
+                    .map((p) => p[0])
+                    .join("")
+                    .slice(0, 2)}
                 </div>
                 <div className="min-w-0 leading-tight">
                   <div className="truncate text-sm font-medium text-foreground">{user.name}</div>
-                  <div className="truncate font-mono text-xs text-muted-foreground">@{user.handle}</div>
+                  <div className="truncate font-mono text-xs text-muted-foreground">
+                    @{user.handle}
+                  </div>
                 </div>
               </Link>
             ))}
@@ -207,19 +222,21 @@ function CommunityPage() {
             <div>
               <h3 className="font-mono text-sm text-foreground mb-2">Description</h3>
               <p className="text-sm text-foreground leading-relaxed">
-                {community.description} 
-                <br/><br/>
-                This is a great place to connect with other developers interested in this topic, share your projects, and ask questions.
+                {community.description}
+                <br />
+                <br />
+                This is a great place to connect with other developers interested in this topic,
+                share your projects, and ask questions.
               </p>
             </div>
-            
+
             {community.tags && community.tags.length > 0 && (
               <div>
                 <h3 className="font-mono text-sm text-foreground mb-2">Topics</h3>
                 <div className="flex flex-wrap gap-2">
-                  {community.tags.map(tag => (
-                    <span 
-                      key={tag} 
+                  {community.tags.map((tag) => (
+                    <span
+                      key={tag}
                       className="inline-flex items-center rounded-md border border-border/70 bg-card px-2.5 py-1 text-xs text-muted-foreground font-mono"
                     >
                       {tag}
@@ -228,9 +245,11 @@ function CommunityPage() {
                 </div>
               </div>
             )}
-            
+
             <div className="pt-4 border-t border-border/50">
-              <span className="font-mono text-xs text-muted-foreground">Created • Oct 24, 2023</span>
+              <span className="font-mono text-xs text-muted-foreground">
+                Created • Oct 24, 2023
+              </span>
             </div>
           </div>
         )}

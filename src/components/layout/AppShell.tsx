@@ -61,9 +61,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <SideNav onNewPost={() => setComposerOpen(true)} />
         </aside>
 
-        <main className="min-w-0 flex-1 border-r border-border/70 pb-20 lg:pb-0">
-          {children}
-        </main>
+        <main className="min-w-0 flex-1 border-r border-border/70 pb-20 lg:pb-0">{children}</main>
 
         <RightRail />
       </div>

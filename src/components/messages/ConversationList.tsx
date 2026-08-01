@@ -7,7 +7,12 @@ interface ConversationListProps {
   onNewMessage?: () => void;
 }
 
-export function ConversationList({ conversations, activeId, onSelect, onNewMessage }: ConversationListProps) {
+export function ConversationList({
+  conversations,
+  activeId,
+  onSelect,
+  onNewMessage,
+}: ConversationListProps) {
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
@@ -37,10 +42,14 @@ export function ConversationList({ conversations, activeId, onSelect, onNewMessa
             <div className="flex flex-1 flex-col overflow-hidden">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-foreground">{conv.participant.name}</span>
-                <span className="ml-auto font-mono text-xs text-muted-foreground">{conv.lastTime}</span>
+                <span className="ml-auto font-mono text-xs text-muted-foreground">
+                  {conv.lastTime}
+                </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="line-clamp-1 text-xs text-muted-foreground">{conv.lastMessage}</span>
+                <span className="line-clamp-1 text-xs text-muted-foreground">
+                  {conv.lastMessage}
+                </span>
                 {conv.unread > 0 && (
                   <span className="ml-2 rounded-full bg-primary px-1.5 py-0.5 font-mono text-[10px] text-primary-foreground">
                     {conv.unread}

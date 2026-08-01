@@ -21,7 +21,7 @@ export function Logo({ size = "md", showText = true, className, ...props }: Logo
         alt="CroxCom Logo"
         className={cn(
           "object-contain rounded-md transition-transform group-hover:scale-105",
-          sizeMap[size]
+          sizeMap[size],
         )}
       />
       {showText && (

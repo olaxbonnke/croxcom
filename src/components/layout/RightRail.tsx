@@ -14,28 +14,31 @@ export function RightRail() {
     ? mockUsers.filter(
         (u) =>
           u.name.toLowerCase().includes(query.toLowerCase()) ||
-          u.handle.toLowerCase().includes(query.toLowerCase())
+          u.handle.toLowerCase().includes(query.toLowerCase()),
       )
     : [];
 
   const matchedPosts = query.trim()
-    ? posts.filter(
-        (p) =>
-          p.body.toLowerCase().includes(query.toLowerCase()) ||
-          p.tags?.some((t) => t.toLowerCase().includes(query.toLowerCase()))
-      ).slice(0, 3)
+    ? posts
+        .filter(
+          (p) =>
+            p.body.toLowerCase().includes(query.toLowerCase()) ||
+            p.tags?.some((t) => t.toLowerCase().includes(query.toLowerCase())),
+        )
+        .slice(0, 3)
     : [];
 
   const matchedCommunities = query.trim()
     ? mockCommunities.filter((c) => c.name.toLowerCase().includes(query.toLowerCase()))
     : [];
 
-  const hasResults = matchedUsers.length > 0 || matchedPosts.length > 0 || matchedCommunities.length > 0;
+  const hasResults =
+    matchedUsers.length > 0 || matchedPosts.length > 0 || matchedCommunities.length > 0;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
-      navigate({ to: "/browse", search: { q: query.trim() } as any });
+      navigate({ to: "/browse", search: { q: query.trim() } as Record<string, string> });
     }
   };
 
@@ -71,7 +74,9 @@ export function RightRail() {
             <div className="absolute top-full left-0 right-0 z-40 mt-1.5 max-h-80 overflow-y-auto rounded-lg border border-border/80 bg-background shadow-2xl p-2 font-mono text-xs scrollbar-none">
               {matchedUsers.length > 0 && (
                 <div className="mb-2">
-                  <div className="px-2 py-1 text-[10px] text-muted-foreground uppercase font-semibold">Users</div>
+                  <div className="px-2 py-1 text-[10px] text-muted-foreground uppercase font-semibold">
+                    Users
+                  </div>
                   {matchedUsers.map((u) => (
                     <Link
                       key={u.id}
@@ -86,8 +91,12 @@ export function RightRail() {
                         {u.name[0]}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-foreground font-sans font-medium">{u.name}</div>
-                        <div className="truncate text-muted-foreground text-[10px]">@{u.handle}</div>
+                        <div className="truncate text-foreground font-sans font-medium">
+                          {u.name}
+                        </div>
+                        <div className="truncate text-muted-foreground text-[10px]">
+                          @{u.handle}
+                        </div>
                       </div>
                     </Link>
                   ))}
@@ -96,7 +105,9 @@ export function RightRail() {
 
               {matchedCommunities.length > 0 && (
                 <div className="mb-2 border-t border-border/40 pt-1">
-                  <div className="px-2 py-1 text-[10px] text-muted-foreground uppercase font-semibold">Communities</div>
+                  <div className="px-2 py-1 text-[10px] text-muted-foreground uppercase font-semibold">
+                    Communities
+                  </div>
                   {matchedCommunities.map((c) => (
                     <Link
                       key={c.id}
@@ -113,7 +124,9 @@ export function RightRail() {
 
               {matchedPosts.length > 0 && (
                 <div className="border-t border-border/40 pt-1">
-                  <div className="px-2 py-1 text-[10px] text-muted-foreground uppercase font-semibold">Posts</div>
+                  <div className="px-2 py-1 text-[10px] text-muted-foreground uppercase font-semibold">
+                    Posts
+                  </div>
                   {matchedPosts.map((p) => (
                     <Link
                       key={p.id}
@@ -148,7 +161,9 @@ export function RightRail() {
             {trending.map((t) => (
               <li key={t.topic}>
                 <button
-                  onClick={() => navigate({ to: "/browse", search: { q: t.topic } as any })}
+                  onClick={() =>
+                    navigate({ to: "/browse", search: { q: t.topic } as Record<string, string> })
+                  }
                   className="flex w-full flex-col items-start px-4 py-2.5 text-left transition-colors hover:bg-accent/50 cursor-pointer"
                 >
                   <span className="text-sm text-foreground">#{t.topic}</span>
@@ -170,7 +185,11 @@ export function RightRail() {
             {mockCommunities.slice(0, 4).map((c) => (
               <li key={c.id} className="flex items-center justify-between gap-3 px-4 py-3">
                 <div className="min-w-0">
-                  <Link to="/communities/$slug" params={{ slug: c.slug }} className="truncate font-mono text-sm text-foreground hover:underline">
+                  <Link
+                    to="/communities/$slug"
+                    params={{ slug: c.slug }}
+                    className="truncate font-mono text-sm text-foreground hover:underline"
+                  >
                     /{c.name}
                   </Link>
                   <div className="truncate text-xs text-muted-foreground">

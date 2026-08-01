@@ -12,9 +12,9 @@ export const Route = createFileRoute("/messages/$conversationId")({
 
 function MessageThreadPage() {
   const { conversationId } = Route.useParams();
-  
-  const [conversations, setConversations] = useState(() => 
-    mockConversations.map(c => c.id === conversationId ? { ...c, unread: 0 } : c)
+
+  const [conversations, setConversations] = useState(() =>
+    mockConversations.map((c) => (c.id === conversationId ? { ...c, unread: 0 } : c)),
   );
 
   const activeConv = conversations.find((c) => c.id === conversationId);
@@ -26,7 +26,7 @@ function MessageThreadPage() {
       body,
       time: "Just now",
     };
-    
+
     setConversations((prev) =>
       prev.map((c) => {
         if (c.id === conversationId) {
@@ -38,7 +38,7 @@ function MessageThreadPage() {
           };
         }
         return c;
-      })
+      }),
     );
   };
 
@@ -48,7 +48,7 @@ function MessageThreadPage() {
     <AppShell>
       <div className="flex h-[calc(100vh-56px)] flex-col lg:h-screen">
         <div className="flex-1 overflow-hidden">
-          <MessageThread 
+          <MessageThread
             conversation={activeConv}
             backButton={
               <Link to="/messages" className="text-muted-foreground hover:text-foreground">

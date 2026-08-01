@@ -105,7 +105,7 @@ export function PostCard({ post }: { post: MockPost }) {
           <div
             className={cn(
               "mt-1 whitespace-pre-wrap text-[15px] leading-[1.65] text-foreground",
-              needsClamp && !expanded && "line-clamp-6"
+              needsClamp && !expanded && "line-clamp-6",
             )}
           >
             {post.body}
@@ -170,25 +170,24 @@ export function PostCard({ post }: { post: MockPost }) {
               active={liked}
               activeClass="text-primary"
               onClick={() => toggleLike(post.id)}
-              icon={
-                <Heart className={cn("h-[15px] w-[15px]", liked && "fill-current")} />
-              }
+              icon={<Heart className={cn("h-[15px] w-[15px]", liked && "fill-current")} />}
             />
             <EngageButton
               label={saved ? "Remove bookmark" : "Bookmark"}
               active={saved}
               activeClass="text-primary"
               onClick={() => toggleBookmark(post.id)}
-              icon={
-                <Bookmark className={cn("h-[15px] w-[15px]", saved && "fill-current")} />
-              }
+              icon={<Bookmark className={cn("h-[15px] w-[15px]", saved && "fill-current")} />}
             />
             <EngageButton
               label="Share"
               icon={<Share2 className="h-[15px] w-[15px]" />}
               onClick={() => {
                 if (navigator.share) {
-                  navigator.share({ title: `Post by ${post.author.name}`, url: window.location.href });
+                  navigator.share({
+                    title: `Post by ${post.author.name}`,
+                    url: window.location.href,
+                  });
                 } else {
                   navigator.clipboard.writeText(window.location.origin + `/posts/${post.id}`);
                 }
@@ -253,13 +252,11 @@ function EngageButton({
       className={cn(
         "group flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-xs transition-colors",
         "hover:bg-accent/60 hover:text-foreground",
-        active && (activeClass ?? "text-primary")
+        active && (activeClass ?? "text-primary"),
       )}
     >
       {icon}
-      {typeof count === "number" && (
-        <span className="tabular-nums">{formatCount(count)}</span>
-      )}
+      {typeof count === "number" && <span className="tabular-nums">{formatCount(count)}</span>}
     </button>
   );
 }
@@ -340,32 +337,108 @@ function SingleMediaBlock({ media }: { media: PostMedia }) {
       )}
 
       {/* ── Multi-Image Grid (Match X Layout for 2, 3, 4 images) ── */}
-      {media.kind === "image-grid" && (() => {
-        const imgs = media.images.slice(0, 4);
-        const count = imgs.length;
+      {media.kind === "image-grid" &&
+        (() => {
+          const imgs = media.images.slice(0, 4);
+          const count = imgs.length;
 
-        if (count === 1) {
-          return (
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-                openLightbox(imgs, 0);
-              }}
-              className="overflow-hidden rounded-xl border border-border/70 cursor-pointer group max-h-[420px] bg-black/30"
-            >
-              <img
-                src={imgs[0].url}
-                alt={imgs[0].alt}
-                loading="lazy"
-                className="w-full max-h-[420px] object-cover transition-transform duration-300 group-hover:scale-[1.01]"
-              />
-            </div>
-          );
-        }
+          if (count === 1) {
+            return (
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openLightbox(imgs, 0);
+                }}
+                className="overflow-hidden rounded-xl border border-border/70 cursor-pointer group max-h-[420px] bg-black/30"
+              >
+                <img
+                  src={imgs[0].url}
+                  alt={imgs[0].alt}
+                  loading="lazy"
+                  className="w-full max-h-[420px] object-cover transition-transform duration-300 group-hover:scale-[1.01]"
+                />
+              </div>
+            );
+          }
 
-        if (count === 2) {
+          if (count === 2) {
+            return (
+              <div className="grid grid-cols-2 gap-0.5 overflow-hidden rounded-xl border border-border/70">
+                {imgs.map((img, i) => (
+                  <div
+                    key={i}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openLightbox(imgs, i);
+                    }}
+                    className="aspect-[7/8] overflow-hidden cursor-pointer group bg-muted/20"
+                  >
+                    <img
+                      src={img.url}
+                      alt={img.alt}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                    />
+                  </div>
+                ))}
+              </div>
+            );
+          }
+
+          if (count === 3) {
+            return (
+              <div className="grid grid-cols-2 gap-0.5 overflow-hidden rounded-xl border border-border/70 aspect-[16/9] sm:aspect-[2/1]">
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openLightbox(imgs, 0);
+                  }}
+                  className="h-full overflow-hidden cursor-pointer group bg-muted/20"
+                >
+                  <img
+                    src={imgs[0].url}
+                    alt={imgs[0].alt}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                  />
+                </div>
+                <div className="grid grid-rows-2 gap-0.5 h-full">
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openLightbox(imgs, 1);
+                    }}
+                    className="h-full overflow-hidden cursor-pointer group bg-muted/20"
+                  >
+                    <img
+                      src={imgs[1].url}
+                      alt={imgs[1].alt}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                    />
+                  </div>
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openLightbox(imgs, 2);
+                    }}
+                    className="h-full overflow-hidden cursor-pointer group bg-muted/20"
+                  >
+                    <img
+                      src={imgs[2].url}
+                      alt={imgs[2].alt}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          // 4 images (2x2 grid)
           return (
-            <div className="grid grid-cols-2 gap-0.5 overflow-hidden rounded-xl border border-border/70">
+            <div className="grid grid-cols-2 gap-0.5 overflow-hidden rounded-xl border border-border/70 aspect-[16/9] sm:aspect-[2/1]">
               {imgs.map((img, i) => (
                 <div
                   key={i}
@@ -373,7 +446,7 @@ function SingleMediaBlock({ media }: { media: PostMedia }) {
                     e.stopPropagation();
                     openLightbox(imgs, i);
                   }}
-                  className="aspect-[7/8] overflow-hidden cursor-pointer group bg-muted/20"
+                  className="h-full overflow-hidden cursor-pointer group bg-muted/20"
                 >
                   <img
                     src={img.url}
@@ -385,82 +458,7 @@ function SingleMediaBlock({ media }: { media: PostMedia }) {
               ))}
             </div>
           );
-        }
-
-        if (count === 3) {
-          return (
-            <div className="grid grid-cols-2 gap-0.5 overflow-hidden rounded-xl border border-border/70 aspect-[16/9] sm:aspect-[2/1]">
-              <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openLightbox(imgs, 0);
-                }}
-                className="h-full overflow-hidden cursor-pointer group bg-muted/20"
-              >
-                <img
-                  src={imgs[0].url}
-                  alt={imgs[0].alt}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                />
-              </div>
-              <div className="grid grid-rows-2 gap-0.5 h-full">
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openLightbox(imgs, 1);
-                  }}
-                  className="h-full overflow-hidden cursor-pointer group bg-muted/20"
-                >
-                  <img
-                    src={imgs[1].url}
-                    alt={imgs[1].alt}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                  />
-                </div>
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openLightbox(imgs, 2);
-                  }}
-                  className="h-full overflow-hidden cursor-pointer group bg-muted/20"
-                >
-                  <img
-                    src={imgs[2].url}
-                    alt={imgs[2].alt}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                  />
-                </div>
-              </div>
-            </div>
-          );
-        }
-
-        // 4 images (2x2 grid)
-        return (
-          <div className="grid grid-cols-2 gap-0.5 overflow-hidden rounded-xl border border-border/70 aspect-[16/9] sm:aspect-[2/1]">
-            {imgs.map((img, i) => (
-              <div
-                key={i}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openLightbox(imgs, i);
-                }}
-                className="h-full overflow-hidden cursor-pointer group bg-muted/20"
-              >
-                <img
-                  src={img.url}
-                  alt={img.alt}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                />
-              </div>
-            ))}
-          </div>
-        );
-      })()}
+        })()}
 
       {/* ── Video Media ── */}
       {media.kind === "video" && (
@@ -498,7 +496,9 @@ function SingleMediaBlock({ media }: { media: PostMedia }) {
                 <span className="text-muted-foreground">{">"}</span>prompt:
               </span>
               <span className="font-mono text-xs text-foreground/80 truncate">
-                {media.code.split("\n")[0] ? `"${media.code.split("\n")[0].slice(0, 50)}..."` : `snippet.${media.language || "code"}`}
+                {media.code.split("\n")[0]
+                  ? `"${media.code.split("\n")[0].slice(0, 50)}..."`
+                  : `snippet.${media.language || "code"}`}
               </span>
               <span className="font-mono text-[10px] text-muted-foreground/70 shrink-0">
                 [{media.language || "code"}]

@@ -29,5 +29,6 @@
    - Cleaned `domain` extraction in `LinkPreviewCard` to remove trailing dots and punctuation so hostnames like `techcrunch.com.` clean to `techcrunch.com` and match mock preview cards accurately.
 
 ## Verification Results
+
 - `npx tsc --noEmit`: Completed with 0 errors.
 - `npm run build`: Completed successfully with Cloudflare / Nitro output generated in `.output/`.

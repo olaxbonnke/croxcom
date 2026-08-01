@@ -22,8 +22,15 @@ interface PostOptionsMenuProps {
 
 export function PostOptionsMenu({ post, onPostDeleted }: PostOptionsMenuProps) {
   const { currentUser } = useAuth();
-  const { deletePost, editPost, toggleMuteUser, toggleBlockUser, mutedUserHandles, blockedUserHandles } = usePosts();
-  
+  const {
+    deletePost,
+    editPost,
+    toggleMuteUser,
+    toggleBlockUser,
+    mutedUserHandles,
+    blockedUserHandles,
+  } = usePosts();
+
   const [isOpen, setIsOpen] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -38,8 +45,7 @@ export function PostOptionsMenu({ post, onPostDeleted }: PostOptionsMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
   const isOwnPost =
-    currentUser &&
-    (post.author.id === currentUser.id || post.author.handle === currentUser.handle);
+    currentUser && (post.author.id === currentUser.id || post.author.handle === currentUser.handle);
 
   const isMuted = mutedUserHandles.has(post.author.handle);
   const isBlocked = blockedUserHandles.has(post.author.handle);
@@ -140,7 +146,11 @@ export function PostOptionsMenu({ post, onPostDeleted }: PostOptionsMenuProps) {
                 onClick={() => {
                   setIsOpen(false);
                   setIsFollowing((prev) => !prev);
-                  showToast(isFollowing ? `Unfollowed @${post.author.handle}` : `Followed @${post.author.handle}`);
+                  showToast(
+                    isFollowing
+                      ? `Unfollowed @${post.author.handle}`
+                      : `Followed @${post.author.handle}`,
+                  );
                 }}
                 className="flex w-full items-center gap-2 rounded px-2.5 py-2 text-foreground hover:bg-accent/60 transition-colors cursor-pointer"
               >
@@ -161,24 +171,34 @@ export function PostOptionsMenu({ post, onPostDeleted }: PostOptionsMenuProps) {
                 onClick={() => {
                   setIsOpen(false);
                   toggleMuteUser(post.author.handle);
-                  showToast(isMuted ? `Unmuted @${post.author.handle}` : `Muted @${post.author.handle}`);
+                  showToast(
+                    isMuted ? `Unmuted @${post.author.handle}` : `Muted @${post.author.handle}`,
+                  );
                 }}
                 className="flex w-full items-center gap-2 rounded px-2.5 py-2 text-foreground hover:bg-accent/60 transition-colors cursor-pointer"
               >
                 <VolumeX className="h-3.5 w-3.5 text-muted-foreground" />
-                <span>{isMuted ? "Unmute" : "Mute"} @{post.author.handle}</span>
+                <span>
+                  {isMuted ? "Unmute" : "Mute"} @{post.author.handle}
+                </span>
               </button>
               <button
                 type="button"
                 onClick={() => {
                   setIsOpen(false);
                   toggleBlockUser(post.author.handle);
-                  showToast(isBlocked ? `Unblocked @${post.author.handle}` : `Blocked @${post.author.handle}`);
+                  showToast(
+                    isBlocked
+                      ? `Unblocked @${post.author.handle}`
+                      : `Blocked @${post.author.handle}`,
+                  );
                 }}
                 className="flex w-full items-center gap-2 rounded px-2.5 py-2 text-foreground hover:bg-accent/60 transition-colors cursor-pointer"
               >
                 <ShieldAlert className="h-3.5 w-3.5 text-destructive" />
-                <span>{isBlocked ? "Unblock" : "Block"} @{post.author.handle}</span>
+                <span>
+                  {isBlocked ? "Unblock" : "Block"} @{post.author.handle}
+                </span>
               </button>
               <div className="my-1 border-t border-border/40" />
               <button

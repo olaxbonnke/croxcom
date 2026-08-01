@@ -6,7 +6,11 @@ interface CommunityContextValue {
   createdCommunities: MockCommunity[];
   joinCommunity: (id: string) => void;
   leaveCommunity: (id: string) => void;
-  createCommunity: (data: { name: string; description: string; isPublic: boolean }) => MockCommunity;
+  createCommunity: (data: {
+    name: string;
+    description: string;
+    isPublic: boolean;
+  }) => MockCommunity;
   isMember: (id: string) => boolean;
 }
 
@@ -23,7 +27,9 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
         const parsed = JSON.parse(stored);
         return new Set<string>(parsed.joined || ["c1", "c3"]);
       }
-    } catch {}
+    } catch {
+      /* ignore storage errors */
+    }
     return new Set(["c1", "c3"]);
   });
 
@@ -35,7 +41,9 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
         const parsed = JSON.parse(stored);
         return parsed.created || [];
       }
-    } catch {}
+    } catch {
+      /* ignore storage errors */
+    }
     return [];
   });
 
@@ -47,9 +55,11 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
         JSON.stringify({
           joined: Array.from(joinedCommunityIds),
           created: createdCommunities,
-        })
+        }),
       );
-    } catch {}
+    } catch {
+      /* ignore storage errors */
+    }
   }, [joinedCommunityIds, createdCommunities]);
 
   const joinCommunity = (id: string) => {
@@ -68,7 +78,11 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const createCommunity = (data: { name: string; description: string; isPublic: boolean }): MockCommunity => {
+  const createCommunity = (data: {
+    name: string;
+    description: string;
+    isPublic: boolean;
+  }): MockCommunity => {
     const slug = data.name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")

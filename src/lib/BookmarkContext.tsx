@@ -28,13 +28,13 @@ export function BookmarkProvider({ children }: { children: ReactNode }) {
       const newSaved = prev.includes(postId)
         ? prev.filter((id) => id !== postId)
         : [...prev, postId];
-      
+
       try {
         localStorage.setItem("croxcom-bookmarks", JSON.stringify(newSaved));
       } catch (e) {
         console.error("Failed to save bookmarks", e);
       }
-      
+
       return newSaved;
     });
   };

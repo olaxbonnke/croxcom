@@ -16,9 +16,7 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <div className="mb-3 font-mono text-xs text-muted-foreground">
-          ~/croxcom $ cat page.md
-        </div>
+        <div className="mb-3 font-mono text-xs text-muted-foreground">~/croxcom $ cat page.md</div>
         <h1 className="font-mono text-6xl font-bold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -87,8 +85,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "CroxCom — Community for AI Developers" },
       {
         property: "og:description",
-        content:
-          "A minimal, terminal-inspired community platform for AI developers.",
+        content: "A minimal, terminal-inspired community platform for AI developers.",
       },
       { property: "og:type", content: "website" },
       { property: "og:image", content: "/logo.jpg" },

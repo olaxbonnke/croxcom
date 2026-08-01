@@ -1,7 +1,17 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/layout/AppShell";
-import { Sparkles, Check, ArrowLeft, Terminal, Cpu, Zap, Shield, Code2, CheckCircle2 } from "lucide-react";
+import {
+  Sparkles,
+  Check,
+  ArrowLeft,
+  Terminal,
+  Cpu,
+  Zap,
+  Shield,
+  Code2,
+  CheckCircle2,
+} from "lucide-react";
 
 export const Route = createFileRoute("/premium")({
   component: PremiumPage,
@@ -27,7 +37,9 @@ function PremiumPage() {
       <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-border/70 bg-background/80 px-4 py-3 backdrop-blur-md">
         <button
           type="button"
-          onClick={() => (window.history.length > 1 ? window.history.back() : navigate({ to: "/" }))}
+          onClick={() =>
+            window.history.length > 1 ? window.history.back() : navigate({ to: "/" })
+          }
           className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -62,7 +74,9 @@ function PremiumPage() {
                   Free
                 </span>
               </div>
-              <p className="mt-2 text-xs text-muted-foreground">Standard access for community members.</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Standard access for community members.
+              </p>
               <div className="mt-4 font-mono text-2xl font-bold text-foreground">
                 $0 <span className="text-xs text-muted-foreground font-normal">/ month</span>
               </div>
@@ -104,7 +118,9 @@ function PremiumPage() {
                   PRO
                 </span>
               </div>
-              <p className="mt-2 text-xs text-muted-foreground">Full power for professional AI developers.</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Full power for professional AI developers.
+              </p>
               <div className="mt-4 font-mono text-3xl font-bold text-foreground">
                 $19 <span className="text-xs text-muted-foreground font-normal">/ month</span>
               </div>
@@ -113,7 +129,11 @@ function PremiumPage() {
                 {FEATURES.map((f, i) => (
                   <li key={i} className="flex items-start gap-2">
                     <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
-                    <span className={f.highlight ? "font-medium text-foreground" : "text-muted-foreground"}>
+                    <span
+                      className={
+                        f.highlight ? "font-medium text-foreground" : "text-muted-foreground"
+                      }
+                    >
                       {f.text}
                     </span>
                   </li>
@@ -136,19 +156,25 @@ function PremiumPage() {
           <div className="rounded-lg border border-border/70 bg-card/30 p-4 text-center">
             <Cpu className="mx-auto h-6 w-6 text-primary mb-2" />
             <h4 className="font-mono text-xs font-semibold text-foreground">GPU Priority</h4>
-            <p className="mt-1 text-[11px] text-muted-foreground">Fast sandbox execution for code snippets.</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Fast sandbox execution for code snippets.
+            </p>
           </div>
 
           <div className="rounded-lg border border-border/70 bg-card/30 p-4 text-center">
             <Zap className="mx-auto h-6 w-6 text-primary mb-2" />
             <h4 className="font-mono text-xs font-semibold text-foreground">Feed Boost</h4>
-            <p className="mt-1 text-[11px] text-muted-foreground">3x higher visibility for technical threads.</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              3x higher visibility for technical threads.
+            </p>
           </div>
 
           <div className="rounded-lg border border-border/70 bg-card/30 p-4 text-center">
             <Shield className="mx-auto h-6 w-6 text-primary mb-2" />
             <h4 className="font-mono text-xs font-semibold text-foreground">Verified Mark</h4>
-            <p className="mt-1 text-[11px] text-muted-foreground">Terminal badge next to handle across site.</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Terminal badge next to handle across site.
+            </p>
           </div>
         </div>
       </div>

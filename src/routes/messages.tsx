@@ -21,9 +21,7 @@ function MessagesPage() {
 
   const handleSelect = (id: string) => {
     setActiveId(id);
-    setConversations((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c))
-    );
+    setConversations((prev) => prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c)));
   };
 
   const handleSend = (body: string) => {
@@ -34,7 +32,7 @@ function MessagesPage() {
       body,
       time: "Just now",
     };
-    
+
     setConversations((prev) =>
       prev.map((c) => {
         if (c.id === activeId) {
@@ -46,7 +44,7 @@ function MessagesPage() {
           };
         }
         return c;
-      })
+      }),
     );
   };
 
@@ -95,20 +93,16 @@ function MessagesPage() {
             onNewMessage={() => setShowNewModal(true)}
           />
         </div>
-        
-        <div
-          className={`flex-1 flex-col ${
-            !activeId ? "hidden lg:flex" : "flex"
-          }`}
-        >
+
+        <div className={`flex-1 flex-col ${!activeId ? "hidden lg:flex" : "flex"}`}>
           {activeConv ? (
             <>
               <div className="flex-1 overflow-hidden">
-                <MessageThread 
+                <MessageThread
                   conversation={activeConv}
                   backButton={
-                    <button 
-                      onClick={() => setActiveId(null)} 
+                    <button
+                      onClick={() => setActiveId(null)}
                       className="lg:hidden text-muted-foreground hover:text-foreground mr-2 font-mono text-sm"
                     >
                       &larr;
@@ -123,7 +117,9 @@ function MessagesPage() {
               <div className="h-12 w-12 rounded-full bg-primary/10 grid place-items-center text-primary mb-3">
                 <MessageSquarePlus className="h-6 w-6" />
               </div>
-              <p className="font-mono text-sm font-semibold text-foreground">No conversation selected</p>
+              <p className="font-mono text-sm font-semibold text-foreground">
+                No conversation selected
+              </p>
               <p className="text-xs text-muted-foreground mt-1 mb-4">
                 Choose an existing message thread or start a new conversation.
               </p>
@@ -198,9 +194,7 @@ function MessagesPage() {
                   </button>
                 ))
               ) : (
-                <div className="py-6 text-center text-muted-foreground">
-                  No users found
-                </div>
+                <div className="py-6 text-center text-muted-foreground">No users found</div>
               )}
             </div>
           </div>

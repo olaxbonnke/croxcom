@@ -51,74 +51,84 @@ export function PostProvider({ children }: { children: ReactNode }) {
   const editPost = useCallback((id: string, newBody: string, newTags?: string[]) => {
     setPosts((prev) =>
       prev.map((p) =>
-        p.id === id ? { ...p, body: newBody, ...(newTags ? { tags: newTags } : {}) } : p
-      )
+        p.id === id ? { ...p, body: newBody, ...(newTags ? { tags: newTags } : {}) } : p,
+      ),
     );
   }, []);
 
-  const addComment = useCallback((postId: string, body: string) => {
-    if (!body.trim()) return;
-    const authorToUse = currentUser || mockUsers[0];
-    const newComment: MockComment = {
-      id: `comm-${Date.now()}`,
-      postId,
-      author: authorToUse,
-      time: "Just now",
-      body: body.trim(),
-      likes: 0,
-      replies: [],
-    };
-    setComments((prev) => [...prev, newComment]);
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === postId ? { ...p, stats: { ...p.stats, comments: p.stats.comments + 1 } } : p
-      )
-    );
-  }, [currentUser]);
+  const addComment = useCallback(
+    (postId: string, body: string) => {
+      if (!body.trim()) return;
+      const authorToUse = currentUser || mockUsers[0];
+      const newComment: MockComment = {
+        id: `comm-${Date.now()}`,
+        postId,
+        author: authorToUse,
+        time: "Just now",
+        body: body.trim(),
+        likes: 0,
+        replies: [],
+      };
+      setComments((prev) => [...prev, newComment]);
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId ? { ...p, stats: { ...p.stats, comments: p.stats.comments + 1 } } : p,
+        ),
+      );
+    },
+    [currentUser],
+  );
 
-  const addReply = useCallback((postId: string, parentCommentId: string, body: string) => {
-    if (!body.trim()) return;
-    const authorToUse = currentUser || mockUsers[0];
-    const newReply: MockComment = {
-      id: `reply-${Date.now()}`,
-      postId,
-      author: authorToUse,
-      time: "Just now",
-      body: body.trim(),
-      likes: 0,
-    };
+  const addReply = useCallback(
+    (postId: string, parentCommentId: string, body: string) => {
+      if (!body.trim()) return;
+      const authorToUse = currentUser || mockUsers[0];
+      const newReply: MockComment = {
+        id: `reply-${Date.now()}`,
+        postId,
+        author: authorToUse,
+        time: "Just now",
+        body: body.trim(),
+        likes: 0,
+      };
 
-    const appendReplyToTree = (list: MockComment[]): MockComment[] => {
-      return list.map((c) => {
-        if (c.id === parentCommentId) {
-          return { ...c, replies: [...(c.replies || []), newReply] };
-        }
-        if (c.replies && c.replies.length > 0) {
-          return { ...c, replies: appendReplyToTree(c.replies) };
-        }
-        return c;
-      });
-    };
+      const appendReplyToTree = (list: MockComment[]): MockComment[] => {
+        return list.map((c) => {
+          if (c.id === parentCommentId) {
+            return { ...c, replies: [...(c.replies || []), newReply] };
+          }
+          if (c.replies && c.replies.length > 0) {
+            return { ...c, replies: appendReplyToTree(c.replies) };
+          }
+          return c;
+        });
+      };
 
-    setComments((prev) => appendReplyToTree(prev));
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === postId ? { ...p, stats: { ...p.stats, comments: p.stats.comments + 1 } } : p
-      )
-    );
-  }, [currentUser]);
+      setComments((prev) => appendReplyToTree(prev));
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId ? { ...p, stats: { ...p.stats, comments: p.stats.comments + 1 } } : p,
+        ),
+      );
+    },
+    [currentUser],
+  );
 
   const toggleLike = useCallback((id: string) => {
     setLikedPostIds((prev) => {
       const next = new Set(prev);
       const wasLiked = next.has(id);
-      wasLiked ? next.delete(id) : next.add(id);
+      if (wasLiked) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       setPosts((ps) =>
         ps.map((p) =>
           p.id === id
             ? { ...p, stats: { ...p.stats, likes: p.stats.likes + (wasLiked ? -1 : 1) } }
-            : p
-        )
+            : p,
+        ),
       );
       return next;
     });
@@ -128,13 +138,17 @@ export function PostProvider({ children }: { children: ReactNode }) {
     setRepostedPostIds((prev) => {
       const next = new Set(prev);
       const wasReposted = next.has(id);
-      wasReposted ? next.delete(id) : next.add(id);
+      if (wasReposted) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       setPosts((ps) =>
         ps.map((p) =>
           p.id === id
             ? { ...p, stats: { ...p.stats, reposts: p.stats.reposts + (wasReposted ? -1 : 1) } }
-            : p
-        )
+            : p,
+        ),
       );
       return next;
     });
@@ -143,7 +157,11 @@ export function PostProvider({ children }: { children: ReactNode }) {
   const toggleMuteUser = useCallback((handle: string) => {
     setMutedUserHandles((prev) => {
       const next = new Set(prev);
-      next.has(handle) ? next.delete(handle) : next.add(handle);
+      if (next.has(handle)) {
+        next.delete(handle);
+      } else {
+        next.add(handle);
+      }
       return next;
     });
   }, []);
@@ -151,7 +169,11 @@ export function PostProvider({ children }: { children: ReactNode }) {
   const toggleBlockUser = useCallback((handle: string) => {
     setBlockedUserHandles((prev) => {
       const next = new Set(prev);
-      next.has(handle) ? next.delete(handle) : next.add(handle);
+      if (next.has(handle)) {
+        next.delete(handle);
+      } else {
+        next.add(handle);
+      }
       return next;
     });
   }, []);
@@ -159,8 +181,8 @@ export function PostProvider({ children }: { children: ReactNode }) {
   const commentPost = useCallback((id: string) => {
     setPosts((prev) =>
       prev.map((p) =>
-        p.id === id ? { ...p, stats: { ...p.stats, comments: p.stats.comments + 1 } } : p
-      )
+        p.id === id ? { ...p, stats: { ...p.stats, comments: p.stats.comments + 1 } } : p,
+      ),
     );
   }, []);
 
@@ -171,7 +193,10 @@ export function PostProvider({ children }: { children: ReactNode }) {
   const resolvedPosts = posts
     .filter((p) => !blockedUserHandles.has(p.author.handle))
     .map((p) => {
-      if (currentUser && (p.author.id === currentUser.id || p.author.handle === currentUser.handle)) {
+      if (
+        currentUser &&
+        (p.author.id === currentUser.id || p.author.handle === currentUser.handle)
+      ) {
         return {
           ...p,
           author: {

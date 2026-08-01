@@ -42,10 +42,8 @@ export function NotifItem({ notif }: { notif: MockNotification }) {
       onClick={handleClick}
       className="relative cursor-pointer border-b border-border/70 px-4 py-3.5 flex gap-3 hover:bg-accent/20 transition-colors"
     >
-      {!notif.read && (
-        <div className="absolute left-0 inset-y-0 w-0.5 bg-primary" />
-      )}
-      
+      {!notif.read && <div className="absolute left-0 inset-y-0 w-0.5 bg-primary" />}
+
       <div className={`h-9 w-9 rounded-md grid place-items-center shrink-0 ${iconColors}`}>
         <Icon className="h-4 w-4" />
       </div>
@@ -60,7 +58,7 @@ export function NotifItem({ notif }: { notif: MockNotification }) {
             {notif.time}
           </span>
         </div>
-        
+
         {notif.excerpt && (
           <p className="mt-1 text-xs text-muted-foreground line-clamp-1 border-l-2 border-border pl-2">
             {notif.excerpt}

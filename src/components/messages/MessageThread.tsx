@@ -64,7 +64,9 @@ export function MessageThread({ conversation, backButton }: MessageThreadProps) 
                 >
                   {msg.body}
                 </div>
-                <div className={`mt-1 font-mono text-[10px] text-muted-foreground ${isMe ? "text-right" : "text-left"}`}>
+                <div
+                  className={`mt-1 font-mono text-[10px] text-muted-foreground ${isMe ? "text-right" : "text-left"}`}
+                >
                   {msg.time}
                 </div>
               </div>

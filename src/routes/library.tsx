@@ -20,9 +20,8 @@ export function LibraryPage() {
 
   const categories = ["All", "UI/UX", "Model Architecture", "AI Art", "Workflow"];
 
-  const displayedItems = (activeTab === "Main Library"
-    ? items
-    : items.filter((item) => savedIds.includes(item.id))
+  const displayedItems = (
+    activeTab === "Main Library" ? items : items.filter((item) => savedIds.includes(item.id))
   ).filter((item) => selectedCategory === "All" || item.category === selectedCategory);
 
   const handleCopyPrompt = (promptText: string) => {
@@ -59,9 +58,7 @@ export function LibraryPage() {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`relative py-3.5 px-5 font-mono text-xs font-semibold cursor-pointer ${
-                isActive
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <div className="flex items-center gap-2">
@@ -70,9 +67,7 @@ export function LibraryPage() {
                   {count}
                 </span>
               </div>
-              {isActive && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
-              )}
+              {isActive && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
             </button>
           );
         })}
@@ -217,7 +212,9 @@ export function LibraryPage() {
                     }`}
                   >
                     <Bookmark className="h-4 w-4" />
-                    <span>{isSaved(selectedItem.id) ? "Saved in My Library" : "Save to My Library"}</span>
+                    <span>
+                      {isSaved(selectedItem.id) ? "Saved in My Library" : "Save to My Library"}
+                    </span>
                   </button>
                 </div>
 
@@ -237,8 +234,12 @@ export function LibraryPage() {
                     {selectedItem.author.name[0]}
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-foreground">{selectedItem.author.name}</div>
-                    <div className="font-mono text-xs text-muted-foreground">@{selectedItem.author.handle}</div>
+                    <div className="text-sm font-medium text-foreground">
+                      {selectedItem.author.name}
+                    </div>
+                    <div className="font-mono text-xs text-muted-foreground">
+                      @{selectedItem.author.handle}
+                    </div>
                   </div>
                 </Link>
 
@@ -263,7 +264,11 @@ export function LibraryPage() {
                       onClick={() => handleCopyPrompt(selectedItem.prompt)}
                       className="flex items-center gap-1 font-mono text-[11px] text-muted-foreground hover:text-primary cursor-pointer bg-accent/40 px-2 py-0.5 rounded"
                     >
-                      {copiedPrompt ? <Check className="h-3 w-3 text-primary" /> : <Copy className="h-3 w-3" />}
+                      {copiedPrompt ? (
+                        <Check className="h-3 w-3 text-primary" />
+                      ) : (
+                        <Copy className="h-3 w-3" />
+                      )}
                       <span>{copiedPrompt ? "copied" : "copy prompt"}</span>
                     </button>
                   </div>
@@ -275,7 +280,10 @@ export function LibraryPage() {
                 {/* Tags */}
                 <div className="flex flex-wrap gap-1.5">
                   {selectedItem.tags.map((t) => (
-                    <span key={t} className="font-mono text-xs text-muted-foreground bg-accent/30 px-2 py-0.5 rounded border border-border/40">
+                    <span
+                      key={t}
+                      className="font-mono text-xs text-muted-foreground bg-accent/30 px-2 py-0.5 rounded border border-border/40"
+                    >
                       #{t}
                     </span>
                   ))}

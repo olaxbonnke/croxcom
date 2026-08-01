@@ -69,7 +69,11 @@ export function CommentCard({ comment, depth = 0, onAddReply }: CommentCardProps
         style={{ background: comment.author.avatarColor || "#a1a1aa", color: "#0a0a0a" }}
       >
         {comment.author.avatar ? (
-          <img src={comment.author.avatar} alt={comment.author.name} className="h-full w-full object-cover rounded-md" />
+          <img
+            src={comment.author.avatar}
+            alt={comment.author.name}
+            className="h-full w-full object-cover rounded-md"
+          />
         ) : (
           getInitials(comment.author.name)
         )}
@@ -107,7 +111,7 @@ export function CommentCard({ comment, depth = 0, onAddReply }: CommentCardProps
             onClick={toggleLike}
             className={cn(
               "flex items-center gap-1.5 text-xs font-mono transition-colors group cursor-pointer",
-              liked ? "text-primary font-semibold" : "text-muted-foreground hover:text-primary"
+              liked ? "text-primary font-semibold" : "text-muted-foreground hover:text-primary",
             )}
           >
             <Heart className={cn("h-3.5 w-3.5", liked && "fill-current")} />

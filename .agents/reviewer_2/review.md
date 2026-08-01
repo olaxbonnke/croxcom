@@ -3,6 +3,7 @@
 **Verdict**: **REQUEST_CHANGES**
 
 CroxCom's build health is excellent (`npx tsc --noEmit` and `npm run build` both pass with 0 errors). The mobile layout, glassmorphism, accent consistency (`#00ff9f`), avatar contrast, and double-border avoidance in `AppShell.tsx` are all implemented properly. However, two issues were identified during visual & theme inspection:
+
 1. **Critical Visual Defect**: Code block text in `PostCard.tsx` renders near-black text (`text-foreground/90`) on a dark `#0d0d0d` background in Light Mode, producing unreadable black-on-black text.
 2. **Major Theme Persistence Defect**: `<html className="dark">` in `RootShell` (`__root.tsx`) causes React hydration to re-inject `.dark` class for light-mode users, causing theme leaks on pages without `ThemeToggle` (e.g. 404 & error boundaries).
 

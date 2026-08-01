@@ -1,9 +1,7 @@
 export function FeedSkeleton() {
   return (
     <div className="px-4 py-6 sm:px-5" role="status" aria-live="polite" aria-label="Loading feed">
-      <div className="mb-6 font-mono text-xs text-muted-foreground cursor-pulse">
-        loading feed
-      </div>
+      <div className="mb-6 font-mono text-xs text-muted-foreground cursor-pulse">loading feed</div>
       <div className="space-y-6">
         {[0, 1, 2].map((i) => (
           <div key={i} className="flex gap-3 animate-pulse">

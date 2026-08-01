@@ -19,8 +19,10 @@ export const INITIAL_LIBRARY_ITEMS: LibraryItem[] = [
     title: "Cyberpunk Terminal Dashboard",
     author: mockUsers[0],
     imageUrl: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80",
-    prompt: "Minimalist dark terminal dashboard UI, glowing cyan accents, telemetry graphs, glassmorphism layout, 8k resolution, UI design inspiration",
-    description: "A dark-mode analytics console designed for GPU cluster monitoring and real-time LLM inference tracking.",
+    prompt:
+      "Minimalist dark terminal dashboard UI, glowing cyan accents, telemetry graphs, glassmorphism layout, 8k resolution, UI design inspiration",
+    description:
+      "A dark-mode analytics console designed for GPU cluster monitoring and real-time LLM inference tracking.",
     category: "UI/UX",
     tags: ["Dashboard", "Glassmorphism", "GPU-Monitor", "Dark-Theme"],
     likes: 342,
@@ -30,8 +32,10 @@ export const INITIAL_LIBRARY_ITEMS: LibraryItem[] = [
     title: "Transformer Latent Space Viz",
     author: mockUsers[1],
     imageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80",
-    prompt: "3D vector embedding map, high-dimensional topological graph visualization, glowing nodes, dark background, octree rendering",
-    description: "Visualizing 1536-dimensional embedding vectors using UMAP projection and interactive node clustering.",
+    prompt:
+      "3D vector embedding map, high-dimensional topological graph visualization, glowing nodes, dark background, octree rendering",
+    description:
+      "Visualizing 1536-dimensional embedding vectors using UMAP projection and interactive node clustering.",
     category: "Model Architecture",
     tags: ["Embeddings", "UMAP", "Latent-Space", "Visualization"],
     likes: 512,
@@ -41,8 +45,10 @@ export const INITIAL_LIBRARY_ITEMS: LibraryItem[] = [
     title: "Agentic DAG Execution Pipeline",
     author: mockUsers[2],
     imageUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80",
-    prompt: "Complex node graph workflow diagram, AI agent task orchestration, cybernetic matrix aesthetics, clean schematic blueprint",
-    description: "Multi-agent task decomposition flow diagram showing parallel sub-agent execution and safety gate validation.",
+    prompt:
+      "Complex node graph workflow diagram, AI agent task orchestration, cybernetic matrix aesthetics, clean schematic blueprint",
+    description:
+      "Multi-agent task decomposition flow diagram showing parallel sub-agent execution and safety gate validation.",
     category: "Workflow",
     tags: ["Agents", "DAG", "Orchestration", "Architecture"],
     likes: 289,
@@ -52,8 +58,10 @@ export const INITIAL_LIBRARY_ITEMS: LibraryItem[] = [
     title: "Neon Neural Network Nodes",
     author: mockUsers[3],
     imageUrl: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&q=80",
-    prompt: "Abstract neural pathway connections, glowing neon synapses, deep learning matrix art, ultra detailed 4k rendering",
-    description: "Generative artwork inspired by attention head weight distributions in multi-layer Transformers.",
+    prompt:
+      "Abstract neural pathway connections, glowing neon synapses, deep learning matrix art, ultra detailed 4k rendering",
+    description:
+      "Generative artwork inspired by attention head weight distributions in multi-layer Transformers.",
     category: "AI Art",
     tags: ["Neural-Net", "Generative", "Attention", "Art"],
     likes: 670,
@@ -63,8 +71,10 @@ export const INITIAL_LIBRARY_ITEMS: LibraryItem[] = [
     title: "IDE Code Assistant Interface",
     author: mockUsers[0],
     imageUrl: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80",
-    prompt: "Modern developer code editor interface, dark syntax highlighting, inline AI diff suggestions, sleek monospace typography",
-    description: "Clean UI concept for inline code refactoring and automatic test generation inside web IDEs.",
+    prompt:
+      "Modern developer code editor interface, dark syntax highlighting, inline AI diff suggestions, sleek monospace typography",
+    description:
+      "Clean UI concept for inline code refactoring and automatic test generation inside web IDEs.",
     category: "UI/UX",
     tags: ["IDE", "Code-Editor", "AI-Assistant", "DevTools"],
     likes: 421,
@@ -74,8 +84,10 @@ export const INITIAL_LIBRARY_ITEMS: LibraryItem[] = [
     title: "Distributed GPU Cluster Map",
     author: mockUsers[1],
     imageUrl: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&q=80",
-    prompt: "Infographic diagram of distributed H100 GPU cluster topology, NVLink interconnect network, server rack schematic art",
-    description: "Architectural reference for 1024x GPU cluster setup with InfiniBand fabric topology.",
+    prompt:
+      "Infographic diagram of distributed H100 GPU cluster topology, NVLink interconnect network, server rack schematic art",
+    description:
+      "Architectural reference for 1024x GPU cluster setup with InfiniBand fabric topology.",
     category: "Model Architecture",
     tags: ["GPU", "Infrastructure", "Hardware", "Cluster"],
     likes: 310,
@@ -114,9 +126,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
   }, [savedIds]);
 
   const toggleSave = (id: string) => {
-    setSavedIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
+    setSavedIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
   };
 
   const isSaved = (id: string) => savedIds.includes(id);

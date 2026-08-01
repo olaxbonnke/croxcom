@@ -16,7 +16,8 @@ const AI_NEWS = [
   {
     id: "n1",
     headline: "OpenAI announces GPT-5 architecture details",
-    summary: "The new architecture features dynamic routing and an expanded context window, promising fewer hallucinations and better reasoning capabilities for complex tasks.",
+    summary:
+      "The new architecture features dynamic routing and an expanded context window, promising fewer hallucinations and better reasoning capabilities for complex tasks.",
     source: "techcrunch.com",
     time: "2h ago",
     tag: "#llm",
@@ -25,7 +26,8 @@ const AI_NEWS = [
   {
     id: "n2",
     headline: "Google DeepMind releases Gemini 2.0 Ultra benchmark results",
-    summary: "Gemini 2.0 Ultra outperforms GPT-4o on 18 of 24 reasoning benchmarks, with notable gains in code generation and multimodal understanding.",
+    summary:
+      "Gemini 2.0 Ultra outperforms GPT-4o on 18 of 24 reasoning benchmarks, with notable gains in code generation and multimodal understanding.",
     source: "deepmind.google",
     time: "4h ago",
     tag: "#gemini",
@@ -34,7 +36,8 @@ const AI_NEWS = [
   {
     id: "n3",
     headline: "Meta releases Llama 3.2 with vision capabilities",
-    summary: "The latest Llama model adds native image understanding while keeping the open-weights philosophy. 11B and 90B variants now available.",
+    summary:
+      "The latest Llama model adds native image understanding while keeping the open-weights philosophy. 11B and 90B variants now available.",
     source: "ai.meta.com",
     time: "6h ago",
     tag: "#openweights",
@@ -43,7 +46,8 @@ const AI_NEWS = [
   {
     id: "n4",
     headline: "Anthropic's Constitutional AI 2.0 paper published",
-    summary: "New research shows scalable oversight through AI-generated critiques achieves alignment at 10× lower human annotation cost.",
+    summary:
+      "New research shows scalable oversight through AI-generated critiques achieves alignment at 10× lower human annotation cost.",
     source: "anthropic.com",
     time: "1d ago",
     tag: "#alignment",
@@ -59,7 +63,8 @@ const ADS = [
   },
   {
     sponsor: "Pinecone Vector Database",
-    headline: "Serverless Vector Search — scale to billions of embeddings with zero infra management.",
+    headline:
+      "Serverless Vector Search — scale to billions of embeddings with zero infra management.",
     url: "https://pinecone.io",
   },
 ];
@@ -163,7 +168,10 @@ function FeedPage() {
 
               {/* Post composer accessible on Trend tab */}
               <div className="bg-card/40 border-b border-border/70">
-                <Composer onSubmit={handlePost} placeholder="what are you building or thinking about?" />
+                <Composer
+                  onSubmit={handlePost}
+                  placeholder="what are you building or thinking about?"
+                />
               </div>
 
               {trendItems.map((item, idx) => {
@@ -200,7 +208,9 @@ function FeedPage() {
                           <span className="font-mono text-[9px] uppercase tracking-wider text-primary border border-primary/30 rounded px-1.5 py-0.5 bg-primary/10">
                             AI News
                           </span>
-                          <span className="font-mono text-[10px] text-muted-foreground">{item.data.tag}</span>
+                          <span className="font-mono text-[10px] text-muted-foreground">
+                            {item.data.tag}
+                          </span>
                         </div>
                         <h3 className="text-[15px] font-medium text-foreground leading-snug group-hover:text-primary transition-colors">
                           {item.data.headline}
@@ -222,15 +232,22 @@ function FeedPage() {
 
                 if (item.type === "ad") {
                   return (
-                    <div key={`ad-${idx}`} className="flex items-start gap-3 px-4 py-3 bg-primary/5 border-l-2 border-primary/40">
+                    <div
+                      key={`ad-${idx}`}
+                      className="flex items-start gap-3 px-4 py-3 bg-primary/5 border-l-2 border-primary/40"
+                    >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
                           <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground/70 border border-border/50 rounded px-1">
                             Sponsored
                           </span>
-                          <span className="font-mono text-[10px] text-primary font-medium">{item.data.sponsor}</span>
+                          <span className="font-mono text-[10px] text-primary font-medium">
+                            {item.data.sponsor}
+                          </span>
                         </div>
-                        <p className="text-sm text-foreground/90 leading-snug">{item.data.headline}</p>
+                        <p className="text-sm text-foreground/90 leading-snug">
+                          {item.data.headline}
+                        </p>
                       </div>
                       <a
                         href={item.data.url}
@@ -259,7 +276,10 @@ function FeedPage() {
             >
               {/* First item: Add Post section */}
               <div className="bg-card/40 border-b border-border/70">
-                <Composer onSubmit={handlePost} placeholder="Share an update or code with your network…" />
+                <Composer
+                  onSubmit={handlePost}
+                  placeholder="Share an update or code with your network…"
+                />
               </div>
 
               {posts.map((post) => (
@@ -277,9 +297,7 @@ function FeedPage() {
           )}
 
           {/* ── Communities Tab ── */}
-          {activeTab === "Communities" && (
-            <CommunitiesTab posts={posts} />
-          )}
+          {activeTab === "Communities" && <CommunitiesTab posts={posts} />}
         </AnimatePresence>
       )}
 
@@ -299,7 +317,14 @@ function CommunitiesTab({ posts }: { posts: ReturnType<typeof usePosts>["posts"]
   const [newDesc, setNewDesc] = useState("");
   const [newIsPublic, setNewIsPublic] = useState(true);
 
-  const { joinedCommunityIds, createdCommunities, joinCommunity, leaveCommunity, createCommunity, isMember } = useCommunityCtx();
+  const {
+    joinedCommunityIds,
+    createdCommunities,
+    joinCommunity,
+    leaveCommunity,
+    createCommunity,
+    isMember,
+  } = useCommunityCtx();
 
   // All communities: mock + user-created
   const allCommunities = [...mockCommunities, ...createdCommunities];
@@ -325,11 +350,7 @@ function CommunitiesTab({ posts }: { posts: ReturnType<typeof usePosts>["posts"]
   };
 
   return (
-    <motion.div
-      key="communities"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
+    <motion.div key="communities" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       {/* Sub-tab strip */}
       <div className="flex border-b border-border/70 px-4 gap-4 bg-accent/10">
         <button
@@ -370,7 +391,9 @@ function CommunitiesTab({ posts }: { posts: ReturnType<typeof usePosts>["posts"]
             ))
           ) : (
             <div className="px-4 py-12 text-center">
-              <div className="font-mono text-sm text-muted-foreground">$ communities --feed --empty</div>
+              <div className="font-mono text-sm text-muted-foreground">
+                $ communities --feed --empty
+              </div>
               <p className="text-sm text-muted-foreground mt-2">
                 Join some communities to see posts here.
               </p>
@@ -421,12 +444,17 @@ function CommunitiesTab({ posts }: { posts: ReturnType<typeof usePosts>["posts"]
                         )}
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">{community.description}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                      {community.description}
+                    </p>
                     <div className="flex items-center justify-between mt-1">
                       {community.tags && community.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                           {community.tags.map((t) => (
-                            <span key={t} className="rounded border border-border/50 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                            <span
+                              key={t}
+                              className="rounded border border-border/50 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground"
+                            >
                               #{t}
                             </span>
                           ))}
@@ -445,7 +473,8 @@ function CommunitiesTab({ posts }: { posts: ReturnType<typeof usePosts>["posts"]
             </div>
           ) : (
             <div className="py-8 text-center font-mono text-xs text-muted-foreground">
-              $ communities --mine --empty<br />
+              $ communities --mine --empty
+              <br />
               You haven't joined any communities yet.
             </div>
           )}
@@ -456,26 +485,28 @@ function CommunitiesTab({ posts }: { posts: ReturnType<typeof usePosts>["posts"]
               Discover communities
             </p>
             <div className="grid gap-2 sm:grid-cols-1 md:grid-cols-2">
-              {allCommunities.filter((c) => !isMember(c.id)).map((community) => (
-                <div
-                  key={community.id}
-                  className="flex items-center justify-between rounded-lg border border-border/70 bg-card/40 p-3"
-                >
-                  <Link
-                    to="/communities/$slug"
-                    params={{ slug: community.slug }}
-                    className="font-mono text-sm text-foreground hover:text-primary transition-colors"
+              {allCommunities
+                .filter((c) => !isMember(c.id))
+                .map((community) => (
+                  <div
+                    key={community.id}
+                    className="flex items-center justify-between rounded-lg border border-border/70 bg-card/40 p-3"
                   >
-                    /{community.name}
-                  </Link>
-                  <button
-                    onClick={() => joinCommunity(community.id)}
-                    className="shrink-0 rounded-md bg-primary px-3 py-1 font-mono text-xs text-primary-foreground hover:opacity-90 cursor-pointer"
-                  >
-                    join
-                  </button>
-                </div>
-              ))}
+                    <Link
+                      to="/communities/$slug"
+                      params={{ slug: community.slug }}
+                      className="font-mono text-sm text-foreground hover:text-primary transition-colors"
+                    >
+                      /{community.name}
+                    </Link>
+                    <button
+                      onClick={() => joinCommunity(community.id)}
+                      className="shrink-0 rounded-md bg-primary px-3 py-1 font-mono text-xs text-primary-foreground hover:opacity-90 cursor-pointer"
+                    >
+                      join
+                    </button>
+                  </div>
+                ))}
             </div>
           </div>
         </div>
@@ -487,12 +518,17 @@ function CommunitiesTab({ posts }: { posts: ReturnType<typeof usePosts>["posts"]
           <div className="w-full max-w-md rounded-xl border border-border/80 bg-background p-5 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-border/60 pb-2 font-mono text-xs">
               <span className="text-primary font-bold">$ community --create</span>
-              <button onClick={() => setShowCreateModal(false)} className="text-muted-foreground hover:text-foreground cursor-pointer">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-muted-foreground hover:text-foreground cursor-pointer"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
             <div>
-              <label className="block font-mono text-xs text-muted-foreground mb-1">Community Name</label>
+              <label className="block font-mono text-xs text-muted-foreground mb-1">
+                Community Name
+              </label>
               <input
                 type="text"
                 value={newName}
@@ -502,7 +538,9 @@ function CommunitiesTab({ posts }: { posts: ReturnType<typeof usePosts>["posts"]
               />
             </div>
             <div>
-              <label className="block font-mono text-xs text-muted-foreground mb-1">Description</label>
+              <label className="block font-mono text-xs text-muted-foreground mb-1">
+                Description
+              </label>
               <textarea
                 value={newDesc}
                 onChange={(e) => setNewDesc(e.target.value)}

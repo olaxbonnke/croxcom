@@ -24,7 +24,18 @@ const PRIVACY_OPTIONS: { value: Privacy; label: string; icon: typeof Globe; hint
   { value: "private", label: "Only me", icon: Lock, hint: "Draft — nobody else" },
 ];
 
-const LANGUAGES = ["typescript", "python", "javascript", "bash", "sql", "json", "html", "rust", "go", "cpp"];
+const LANGUAGES = [
+  "typescript",
+  "python",
+  "javascript",
+  "bash",
+  "sql",
+  "json",
+  "html",
+  "rust",
+  "go",
+  "cpp",
+];
 
 const MAX = 500;
 
@@ -60,7 +71,8 @@ export function Composer({
 
   const tags = useMemo(() => extractTags(value), [value]);
   const remaining = MAX - value.length;
-  const canPost = (value.trim().length > 0 || codeValue.trim().length > 0 || images.length > 0) && remaining >= 0;
+  const canPost =
+    (value.trim().length > 0 || codeValue.trim().length > 0 || images.length > 0) && remaining >= 0;
 
   const closeIde = () => {
     setIsIdeOpen(false);
@@ -89,11 +101,7 @@ export function Composer({
     }
 
     const media: PostMedia | PostMedia[] | undefined =
-      mediaItems.length === 0
-        ? undefined
-        : mediaItems.length === 1
-        ? mediaItems[0]
-        : mediaItems;
+      mediaItems.length === 0 ? undefined : mediaItems.length === 1 ? mediaItems[0] : mediaItems;
 
     onSubmit?.({
       body: value.trim() || (codeValue.trim() ? `[Shared ${language} snippet]` : ""),
@@ -153,7 +161,7 @@ export function Composer({
       layout
       className={cn(
         "border-b border-border/70 bg-card/40 backdrop-blur-sm transition-all",
-        compact ? "p-3" : "px-4 py-4 sm:px-5"
+        compact ? "p-3" : "px-4 py-4 sm:px-5",
       )}
       aria-label="New post"
     >
@@ -184,7 +192,7 @@ export function Composer({
               "flex flex-col overflow-hidden rounded-md transition-all",
               focused
                 ? "border border-border/70 bg-background/60 ring-1 ring-primary/20"
-                : "border border-transparent"
+                : "border border-transparent",
             )}
           >
             <textarea
@@ -265,7 +273,7 @@ export function Composer({
                               onClick={() => setLanguage(lang)}
                               className={cn(
                                 "flex w-full items-center px-2 py-1 font-mono text-xs rounded text-left transition-colors hover:bg-accent",
-                                language === lang && "bg-accent text-primary font-bold"
+                                language === lang && "bg-accent text-primary font-bold",
                               )}
                             >
                               {lang}
@@ -312,11 +320,13 @@ export function Composer({
                       ref={lineNumbersRef}
                       className="flex w-9 shrink-0 flex-col items-end border-r border-border/30 bg-muted/10 py-3 pr-2 font-mono text-[13px] text-muted-foreground/40 pointer-events-none select-none overflow-hidden scrollbar-none"
                     >
-                      {Array.from({ length: Math.max(6, codeValue.split("\n").length) }).map((_, i) => (
-                        <span key={i} className="leading-relaxed shrink-0">
-                          {i + 1}
-                        </span>
-                      ))}
+                      {Array.from({ length: Math.max(6, codeValue.split("\n").length) }).map(
+                        (_, i) => (
+                          <span key={i} className="leading-relaxed shrink-0">
+                            {i + 1}
+                          </span>
+                        ),
+                      )}
                     </div>
 
                     <textarea
@@ -370,7 +380,9 @@ export function Composer({
                 disabled={images.length >= 4}
               >
                 <div className="flex items-center gap-1">
-                  <ImageIcon className={cn("h-4 w-4", images.length >= 4 && "opacity-40 cursor-not-allowed")} />
+                  <ImageIcon
+                    className={cn("h-4 w-4", images.length >= 4 && "opacity-40 cursor-not-allowed")}
+                  />
                   {images.length > 0 && (
                     <span className="font-mono text-[10px] text-primary">{images.length}/4</span>
                   )}
@@ -379,19 +391,13 @@ export function Composer({
 
               <ToolButton
                 label="Add tag"
-                onClick={() =>
-                  setValue((v) => (v.endsWith(" ") || v === "" ? `${v}#` : `${v} #`))
-                }
+                onClick={() => setValue((v) => (v.endsWith(" ") || v === "" ? `${v}#` : `${v} #`))}
               >
                 <Hash className="h-4 w-4" />
               </ToolButton>
 
               {/* IDE Code Button */}
-              <ToolButton
-                label="Toggle Code IDE"
-                onClick={toggleIde}
-                active={isIdeOpen}
-              >
+              <ToolButton label="Toggle Code IDE" onClick={toggleIde} active={isIdeOpen}>
                 <Code className="h-4 w-4" />
               </ToolButton>
 
@@ -416,7 +422,7 @@ export function Composer({
                         onClick={() => setPrivacy(opt.value)}
                         className={cn(
                           "flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-accent cursor-pointer",
-                          privacy === opt.value && "bg-accent/60"
+                          privacy === opt.value && "bg-accent/60",
                         )}
                       >
                         <Icon className="mt-0.5 h-4 w-4 text-muted-foreground" />
@@ -440,7 +446,7 @@ export function Composer({
                     ? "text-destructive"
                     : remaining < 60
                       ? "text-primary"
-                      : "text-muted-foreground"
+                      : "text-muted-foreground",
                 )}
               >
                 {remaining}
@@ -483,7 +489,8 @@ function ToolButton({
       className={cn(
         "rounded-md p-1.5 transition-colors hover:bg-accent/60 hover:text-primary cursor-pointer",
         active && "text-primary bg-primary/10",
-        disabled && "opacity-50 cursor-not-allowed hover:bg-transparent hover:text-muted-foreground"
+        disabled &&
+          "opacity-50 cursor-not-allowed hover:bg-transparent hover:text-muted-foreground",
       )}
     >
       {children}

@@ -10,8 +10,12 @@ if (!fs.existsSync(publicDir)) {
 }
 
 const files = fs.existsSync(assetsDir) ? fs.readdirSync(assetsDir) : [];
-const mainJs = files.find((f) => f.startsWith("index-") && f.endsWith(".js")) || files.find((f) => f.endsWith(".js"));
-const cssFile = files.find((f) => f.startsWith("styles-") && f.endsWith(".css")) || files.find((f) => f.endsWith(".css"));
+const mainJs =
+  files.find((f) => f.startsWith("index-") && f.endsWith(".js")) ||
+  files.find((f) => f.endsWith(".js"));
+const cssFile =
+  files.find((f) => f.startsWith("styles-") && f.endsWith(".css")) ||
+  files.find((f) => f.endsWith(".css"));
 
 console.log("Detected Main JS asset:", mainJs);
 console.log("Detected CSS asset:", cssFile);

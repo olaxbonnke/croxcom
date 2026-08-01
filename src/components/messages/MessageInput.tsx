@@ -31,11 +31,13 @@ export function MessageInput({ onSend }: MessageInputProps) {
         placeholder="> type a message..."
         rows={1}
         className="w-full resize-none rounded-md border border-border bg-card/60 px-3 py-2 font-mono text-[14px] text-foreground transition-colors placeholder:text-muted-foreground focus:border-primary/60 focus:outline-none"
-        style={{
-          minHeight: "42px",
-          maxHeight: "120px",
-          fieldSizing: "content"
-        } as React.CSSProperties}
+        style={
+          {
+            minHeight: "42px",
+            maxHeight: "120px",
+            fieldSizing: "content",
+          } as React.CSSProperties
+        }
       />
       <button
         onClick={handleSend}

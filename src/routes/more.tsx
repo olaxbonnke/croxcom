@@ -81,7 +81,9 @@ export function MorePage() {
       <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-border/70 bg-background/80 px-4 py-3 backdrop-blur-md">
         <button
           type="button"
-          onClick={() => (window.history.length > 1 ? window.history.back() : navigate({ to: "/" }))}
+          onClick={() =>
+            window.history.length > 1 ? window.history.back() : navigate({ to: "/" })
+          }
           className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -102,7 +104,11 @@ export function MorePage() {
           style={{ background: currentUser.avatarColor, color: "#0a0a0a" }}
         >
           {currentUser.avatar ? (
-            <img src={currentUser.avatar} alt={currentUser.name} className="h-full w-full object-cover" />
+            <img
+              src={currentUser.avatar}
+              alt={currentUser.name}
+              className="h-full w-full object-cover"
+            />
           ) : (
             initials
           )}
@@ -178,7 +184,9 @@ export function MorePage() {
         <div className="px-4 py-3">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="h-4 w-4 text-accent-orange" />
-            <span className="font-mono text-xs text-accent-orange font-semibold border border-accent-orange/30 bg-accent-orange/10 px-2 py-0.5 rounded">PRO</span>
+            <span className="font-mono text-xs text-accent-orange font-semibold border border-accent-orange/30 bg-accent-orange/10 px-2 py-0.5 rounded">
+              PRO
+            </span>
           </div>
           <p className="text-sm text-muted-foreground mb-3">
             Unlock advanced analytics, priority support, verified badge, and longer posts.
@@ -211,9 +219,7 @@ export function MorePage() {
           label="Connected apps"
           description="Manage apps connected to your account"
         >
-          <div className="mt-2 pl-7 font-mono text-xs text-muted-foreground">
-            No connected apps
-          </div>
+          <div className="mt-2 pl-7 font-mono text-xs text-muted-foreground">No connected apps</div>
         </SettingsRow>
         <SettingsRow
           icon={<Monitor className="h-4 w-4 text-muted-foreground" />}
@@ -313,11 +319,17 @@ export function MorePage() {
           <div className="mt-2 pl-7 space-y-2">
             <label className="flex items-center justify-between text-xs">
               <span className="text-foreground">Find by email address</span>
-              <ToggleSwitch enabled={discoverByEmail} onToggle={() => setDiscoverByEmail(!discoverByEmail)} />
+              <ToggleSwitch
+                enabled={discoverByEmail}
+                onToggle={() => setDiscoverByEmail(!discoverByEmail)}
+              />
             </label>
             <label className="flex items-center justify-between text-xs">
               <span className="text-foreground">Find by phone number</span>
-              <ToggleSwitch enabled={discoverByPhone} onToggle={() => setDiscoverByPhone(!discoverByPhone)} />
+              <ToggleSwitch
+                enabled={discoverByPhone}
+                onToggle={() => setDiscoverByPhone(!discoverByPhone)}
+              />
             </label>
           </div>
         </SettingsRow>
@@ -476,12 +488,16 @@ export function MorePage() {
           <div className="w-full max-w-md rounded-xl border border-border/80 bg-background p-5 shadow-2xl space-y-3 font-mono text-xs">
             <div className="flex items-center justify-between border-b border-border/60 pb-2">
               <span className="text-destructive font-bold">$ account --deactivate</span>
-              <button onClick={() => setActiveModal(null)} className="text-muted-foreground hover:text-foreground cursor-pointer">
+              <button
+                onClick={() => setActiveModal(null)}
+                className="text-muted-foreground hover:text-foreground cursor-pointer"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
             <p className="text-foreground text-sm leading-relaxed">
-              Are you sure you want to deactivate your account? Your profile will be hidden and your posts will no longer be visible.
+              Are you sure you want to deactivate your account? Your profile will be hidden and your
+              posts will no longer be visible.
             </p>
             <div className="rounded bg-destructive/10 p-2 text-[11px] text-destructive">
               ⚠ This action can be reversed by logging in again within 30 days.
@@ -513,7 +529,10 @@ export function MorePage() {
           <div className="w-full max-w-md rounded-xl border border-border/80 bg-background p-5 shadow-2xl space-y-3">
             <div className="flex items-center justify-between border-b border-border/60 pb-2 font-mono text-xs">
               <span className="text-primary font-bold">$ croxcom --version</span>
-              <button onClick={() => setActiveModal(null)} className="text-muted-foreground hover:text-foreground cursor-pointer">
+              <button
+                onClick={() => setActiveModal(null)}
+                className="text-muted-foreground hover:text-foreground cursor-pointer"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -522,7 +541,8 @@ export function MorePage() {
               <h3 className="font-bold text-foreground">CroxCom AI Developer Community</h3>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Designed for ML engineers, researchers, and AI developers to collaborate, share code snippets, run evaluations, and exchange visual prompts.
+              Designed for ML engineers, researchers, and AI developers to collaborate, share code
+              snippets, run evaluations, and exchange visual prompts.
             </p>
             <button
               onClick={() => setActiveModal(null)}
@@ -566,11 +586,7 @@ function SettingsSection({
           <ChevronDown className="h-4 w-4 text-muted-foreground" />
         )}
       </button>
-      {isOpen && (
-        <div className="border-t border-border/40 bg-card/30">
-          {children}
-        </div>
-      )}
+      {isOpen && <div className="border-t border-border/40 bg-card/30">{children}</div>}
     </div>
   );
 }
@@ -612,19 +628,15 @@ function SettingsRow({
         {icon}
         <div className="flex-1 min-w-0">
           <span className={danger ? "text-destructive" : ""}>{label}</span>
-          {description && (
-            <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
-          )}
+          {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
         </div>
         {(onClick || isExpandable) && (
-          <ChevronRight className={`h-4 w-4 text-muted-foreground/40 transition-transform ${expanded ? "rotate-90" : ""}`} />
+          <ChevronRight
+            className={`h-4 w-4 text-muted-foreground/40 transition-transform ${expanded ? "rotate-90" : ""}`}
+          />
         )}
       </button>
-      {expanded && children && (
-        <div className="px-4 pb-3">
-          {children}
-        </div>
-      )}
+      {expanded && children && <div className="px-4 pb-3">{children}</div>}
     </div>
   );
 }
@@ -647,9 +659,7 @@ function SettingsToggle({
       {icon}
       <div className="flex-1 min-w-0">
         <span className="text-sm text-foreground">{label}</span>
-        {description && (
-          <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
-        )}
+        {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
       </div>
       <ToggleSwitch enabled={enabled} onToggle={onToggle} />
     </div>

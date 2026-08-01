@@ -26,10 +26,12 @@ export function UserProfileView({ handle: propHandle }: { handle?: string }) {
   const params = Route.useParams();
   const navigate = useNavigate();
 
-  const handle = propHandle || (params as any)?.handle;
+  const handle = propHandle || (params as Record<string, string>)?.handle;
   const user = mockUsers.find((u) => u.handle === handle || u.id === handle);
   const { posts } = usePosts();
-  const userPosts = user ? posts.filter((p) => p.author.id === user.id || p.author.handle === user.handle) : [];
+  const userPosts = user
+    ? posts.filter((p) => p.author.id === user.id || p.author.handle === user.handle)
+    : [];
 
   const [activeTab, setActiveTab] = useState<Tab>("Posts");
 
@@ -38,7 +40,9 @@ export function UserProfileView({ handle: propHandle }: { handle?: string }) {
       <AppShell>
         <div className="sticky top-0 z-20 flex h-14 items-center gap-4 border-b border-border bg-background/80 px-4 backdrop-blur-md">
           <button
-            onClick={() => (window.history.length > 1 ? window.history.back() : navigate({ to: "/" }))}
+            onClick={() =>
+              window.history.length > 1 ? window.history.back() : navigate({ to: "/" })
+            }
             className="-ml-2 rounded-full p-2 text-foreground transition-colors hover:bg-accent cursor-pointer"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -57,7 +61,9 @@ export function UserProfileView({ handle: propHandle }: { handle?: string }) {
       {/* Sticky TopBar */}
       <div className="sticky top-0 z-20 flex h-14 items-center gap-4 border-b border-border bg-background/80 px-4 backdrop-blur-md">
         <button
-          onClick={() => (window.history.length > 1 ? window.history.back() : navigate({ to: "/" }))}
+          onClick={() =>
+            window.history.length > 1 ? window.history.back() : navigate({ to: "/" })
+          }
           className="-ml-2 rounded-full p-2 text-foreground transition-colors hover:bg-accent cursor-pointer"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -147,12 +153,12 @@ export function UserProfileView({ handle: propHandle }: { handle?: string }) {
               exit={{ opacity: 0 }}
               className="divide-y divide-border/60 px-4"
             >
-              {mockComments.filter((c) => c.author.id === user.id || c.author.handle === user.handle).length > 0 ? (
+              {mockComments.filter(
+                (c) => c.author.id === user.id || c.author.handle === user.handle,
+              ).length > 0 ? (
                 mockComments
                   .filter((c) => c.author.id === user.id || c.author.handle === user.handle)
-                  .map((comment) => (
-                    <CommentCard key={comment.id} comment={comment} />
-                  ))
+                  .map((comment) => <CommentCard key={comment.id} comment={comment} />)
               ) : (
                 <div className="py-6 space-y-4">
                   <p className="font-mono text-xs text-muted-foreground border-b border-border/40 pb-2">

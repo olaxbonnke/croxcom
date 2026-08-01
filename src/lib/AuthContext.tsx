@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem(
         AUTH_STORAGE_KEY,
-        JSON.stringify({ isAuthenticated, hasCompletedOnboarding, onboardingDetails })
+        JSON.stringify({ isAuthenticated, hasCompletedOnboarding, onboardingDetails }),
       );
     } catch {
       /* ignore */
@@ -93,7 +93,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const updated = {
         ...currentUser,
         name: email.split("@")[0],
-        handle: email.split("@")[0].toLowerCase().replace(/[^a-z0-9_]/g, "_"),
+        handle: email
+          .split("@")[0]
+          .toLowerCase()
+          .replace(/[^a-z0-9_]/g, "_"),
       };
       setCurrentUser(updated);
       localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(updated));

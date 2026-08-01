@@ -80,8 +80,7 @@ function PostViewRoute() {
             onClick={() => navigate({ to: "/" })}
             className="mt-6 flex items-center gap-2 px-4 py-2 font-mono text-sm text-primary border border-primary/40 rounded-md hover:bg-primary/10 transition-colors"
           >
-            <ArrowLeft className="h-4 w-4" />
-            $ cd ~
+            <ArrowLeft className="h-4 w-4" />$ cd ~
           </button>
         </div>
       </AppShell>
@@ -101,7 +100,9 @@ function PostViewRoute() {
       {/* Sticky top header bar */}
       <div className="sticky top-0 z-10 border-b border-border/70 bg-background/80 backdrop-blur-md px-4 py-3 flex items-center gap-3">
         <button
-          onClick={() => (window.history.length > 1 ? window.history.back() : navigate({ to: "/" }))}
+          onClick={() =>
+            window.history.length > 1 ? window.history.back() : navigate({ to: "/" })
+          }
           aria-label="Go back"
           className="p-1.5 -ml-1.5 text-muted-foreground hover:text-foreground rounded-md transition-colors cursor-pointer"
         >
@@ -276,11 +277,7 @@ function PostViewRoute() {
           <div className="pb-24 md:pb-0">
             {postComments.length > 0 ? (
               postComments.map((comment) => (
-                <CommentCard
-                  key={comment.id}
-                  comment={comment}
-                  onAddReply={handleAddReply}
-                />
+                <CommentCard key={comment.id} comment={comment} onAddReply={handleAddReply} />
               ))
             ) : (
               <div className="py-16 flex flex-col items-center justify-center text-center px-4">
@@ -388,32 +385,108 @@ function SingleMediaBlock({ media }: { media: PostMedia }) {
       )}
 
       {/* ── Multi-Image Grid (Match X Layout for 2, 3, 4 images) ── */}
-      {media.kind === "image-grid" && (() => {
-        const imgs = media.images.slice(0, 4);
-        const count = imgs.length;
+      {media.kind === "image-grid" &&
+        (() => {
+          const imgs = media.images.slice(0, 4);
+          const count = imgs.length;
 
-        if (count === 1) {
-          return (
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-                openLightbox(imgs, 0);
-              }}
-              className="overflow-hidden rounded-xl border border-border/70 cursor-pointer group max-h-[450px] bg-black/30"
-            >
-              <img
-                src={imgs[0].url}
-                alt={imgs[0].alt}
-                loading="lazy"
-                className="w-full max-h-[450px] object-cover transition-transform duration-300 group-hover:scale-[1.01]"
-              />
-            </div>
-          );
-        }
+          if (count === 1) {
+            return (
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openLightbox(imgs, 0);
+                }}
+                className="overflow-hidden rounded-xl border border-border/70 cursor-pointer group max-h-[450px] bg-black/30"
+              >
+                <img
+                  src={imgs[0].url}
+                  alt={imgs[0].alt}
+                  loading="lazy"
+                  className="w-full max-h-[450px] object-cover transition-transform duration-300 group-hover:scale-[1.01]"
+                />
+              </div>
+            );
+          }
 
-        if (count === 2) {
+          if (count === 2) {
+            return (
+              <div className="grid grid-cols-2 gap-0.5 overflow-hidden rounded-xl border border-border/70">
+                {imgs.map((img, i) => (
+                  <div
+                    key={i}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openLightbox(imgs, i);
+                    }}
+                    className="aspect-[7/8] overflow-hidden cursor-pointer group bg-muted/20"
+                  >
+                    <img
+                      src={img.url}
+                      alt={img.alt}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                    />
+                  </div>
+                ))}
+              </div>
+            );
+          }
+
+          if (count === 3) {
+            return (
+              <div className="grid grid-cols-2 gap-0.5 overflow-hidden rounded-xl border border-border/70 aspect-[16/9] sm:aspect-[2/1]">
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openLightbox(imgs, 0);
+                  }}
+                  className="h-full overflow-hidden cursor-pointer group bg-muted/20"
+                >
+                  <img
+                    src={imgs[0].url}
+                    alt={imgs[0].alt}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                  />
+                </div>
+                <div className="grid grid-rows-2 gap-0.5 h-full">
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openLightbox(imgs, 1);
+                    }}
+                    className="h-full overflow-hidden cursor-pointer group bg-muted/20"
+                  >
+                    <img
+                      src={imgs[1].url}
+                      alt={imgs[1].alt}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                    />
+                  </div>
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openLightbox(imgs, 2);
+                    }}
+                    className="h-full overflow-hidden cursor-pointer group bg-muted/20"
+                  >
+                    <img
+                      src={imgs[2].url}
+                      alt={imgs[2].alt}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          // 4 images (2x2 grid)
           return (
-            <div className="grid grid-cols-2 gap-0.5 overflow-hidden rounded-xl border border-border/70">
+            <div className="grid grid-cols-2 gap-0.5 overflow-hidden rounded-xl border border-border/70 aspect-[16/9] sm:aspect-[2/1]">
               {imgs.map((img, i) => (
                 <div
                   key={i}
@@ -421,7 +494,7 @@ function SingleMediaBlock({ media }: { media: PostMedia }) {
                     e.stopPropagation();
                     openLightbox(imgs, i);
                   }}
-                  className="aspect-[7/8] overflow-hidden cursor-pointer group bg-muted/20"
+                  className="h-full overflow-hidden cursor-pointer group bg-muted/20"
                 >
                   <img
                     src={img.url}
@@ -433,82 +506,7 @@ function SingleMediaBlock({ media }: { media: PostMedia }) {
               ))}
             </div>
           );
-        }
-
-        if (count === 3) {
-          return (
-            <div className="grid grid-cols-2 gap-0.5 overflow-hidden rounded-xl border border-border/70 aspect-[16/9] sm:aspect-[2/1]">
-              <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openLightbox(imgs, 0);
-                }}
-                className="h-full overflow-hidden cursor-pointer group bg-muted/20"
-              >
-                <img
-                  src={imgs[0].url}
-                  alt={imgs[0].alt}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                />
-              </div>
-              <div className="grid grid-rows-2 gap-0.5 h-full">
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openLightbox(imgs, 1);
-                  }}
-                  className="h-full overflow-hidden cursor-pointer group bg-muted/20"
-                >
-                  <img
-                    src={imgs[1].url}
-                    alt={imgs[1].alt}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                  />
-                </div>
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openLightbox(imgs, 2);
-                  }}
-                  className="h-full overflow-hidden cursor-pointer group bg-muted/20"
-                >
-                  <img
-                    src={imgs[2].url}
-                    alt={imgs[2].alt}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                  />
-                </div>
-              </div>
-            </div>
-          );
-        }
-
-        // 4 images (2x2 grid)
-        return (
-          <div className="grid grid-cols-2 gap-0.5 overflow-hidden rounded-xl border border-border/70 aspect-[16/9] sm:aspect-[2/1]">
-            {imgs.map((img, i) => (
-              <div
-                key={i}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openLightbox(imgs, i);
-                }}
-                className="h-full overflow-hidden cursor-pointer group bg-muted/20"
-              >
-                <img
-                  src={img.url}
-                  alt={img.alt}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                />
-              </div>
-            ))}
-          </div>
-        );
-      })()}
+        })()}
 
       {/* ── Video Media ── */}
       {media.kind === "video" && (
@@ -546,7 +544,9 @@ function SingleMediaBlock({ media }: { media: PostMedia }) {
                 <span className="text-muted-foreground">{">"}</span>prompt:
               </span>
               <span className="font-mono text-xs text-foreground/80 truncate">
-                {media.code.split("\n")[0] ? `"${media.code.split("\n")[0].slice(0, 50)}..."` : `snippet.${media.language || "code"}`}
+                {media.code.split("\n")[0]
+                  ? `"${media.code.split("\n")[0].slice(0, 50)}..."`
+                  : `snippet.${media.language || "code"}`}
               </span>
               <span className="font-mono text-[10px] text-muted-foreground/70 shrink-0">
                 [{media.language || "code"}]

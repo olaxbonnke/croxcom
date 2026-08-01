@@ -52,7 +52,7 @@ function CurrentUserProfilePage() {
   const { currentUser, updateUser } = useAuth();
   const { posts } = usePosts();
   const userPosts = posts.filter(
-    (p) => p.author.id === currentUser.id || p.author.handle === currentUser.handle
+    (p) => p.author.id === currentUser.id || p.author.handle === currentUser.handle,
   );
 
   const [activeTab, setActiveTab] = useState<Tab>("Posts");
@@ -62,16 +62,16 @@ function CurrentUserProfilePage() {
       {/* Sticky header */}
       <div className="sticky top-0 z-20 flex h-14 items-center gap-4 border-b border-border bg-background/80 px-4 backdrop-blur-md">
         <button
-          onClick={() => (window.history.length > 1 ? window.history.back() : navigate({ to: "/" }))}
+          onClick={() =>
+            window.history.length > 1 ? window.history.back() : navigate({ to: "/" })
+          }
           className="-ml-2 cursor-pointer rounded-full p-2 text-foreground transition-colors hover:bg-accent"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
         <div>
           <h1 className="font-semibold text-foreground">Profile</h1>
-          <p className="font-mono text-[10px] text-muted-foreground">
-            {userPosts.length} posts
-          </p>
+          <p className="font-mono text-[10px] text-muted-foreground">{userPosts.length} posts</p>
         </div>
       </div>
 
@@ -161,12 +161,14 @@ function CurrentUserProfilePage() {
               exit={{ opacity: 0 }}
               className="divide-y divide-border/60 px-4"
             >
-              {mockComments.filter((c) => c.author.id === currentUser.id || c.author.handle === currentUser.handle).length > 0 ? (
+              {mockComments.filter(
+                (c) => c.author.id === currentUser.id || c.author.handle === currentUser.handle,
+              ).length > 0 ? (
                 mockComments
-                  .filter((c) => c.author.id === currentUser.id || c.author.handle === currentUser.handle)
-                  .map((comment) => (
-                    <CommentCard key={comment.id} comment={comment} />
-                  ))
+                  .filter(
+                    (c) => c.author.id === currentUser.id || c.author.handle === currentUser.handle,
+                  )
+                  .map((comment) => <CommentCard key={comment.id} comment={comment} />)
               ) : (
                 <div className="py-6 space-y-4">
                   <p className="font-mono text-xs text-muted-foreground border-b border-border/40 pb-2">

@@ -60,29 +60,29 @@ Direct observations from source code inspection:
 ## 2. Logic Chain
 
 1. **Composer Line Number Misalignment**:
-   - *Observation:* Line numbers `div` (lines 279–286) has fixed styling and no scroll listener, while code `textarea` (lines 288–295) maxes out at 14 rows and scrolls independently.
-   - *Reasoning:* When code exceeds 14 lines, scrolling the `textarea` leaves line numbers frozen in place. Additionally, line wrapping on long code lines increments visual textarea lines without incrementing the newline count in line numbers `div`.
-   - *Conclusion:* Line numbers become visually misaligned on multi-line scrolling or long line wraps.
+   - _Observation:_ Line numbers `div` (lines 279–286) has fixed styling and no scroll listener, while code `textarea` (lines 288–295) maxes out at 14 rows and scrolls independently.
+   - _Reasoning:_ When code exceeds 14 lines, scrolling the `textarea` leaves line numbers frozen in place. Additionally, line wrapping on long code lines increments visual textarea lines without incrementing the newline count in line numbers `div`.
+   - _Conclusion:_ Line numbers become visually misaligned on multi-line scrolling or long line wraps.
 
 2. **Composer Media Attachment Loss**:
-   - *Observation:* In `Composer.tsx:69-78`, `if (codeValue.trim().length > 0)` takes priority over `else if (images.length...)`.
-   - *Reasoning:* If a user attaches an image AND enters code, `media` is set to `{ kind: "code", ... }`. The `images` array is completely ignored when populating `media`.
-   - *Conclusion:* Image attachments are silently discarded when a code snippet is attached to the same post.
+   - _Observation:_ In `Composer.tsx:69-78`, `if (codeValue.trim().length > 0)` takes priority over `else if (images.length...)`.
+   - _Reasoning:_ If a user attaches an image AND enters code, `media` is set to `{ kind: "code", ... }`. The `images` array is completely ignored when populating `media`.
+   - _Conclusion:_ Image attachments are silently discarded when a code snippet is attached to the same post.
 
 3. **Unreachable Ad in Trend Feed**:
-   - *Observation:* `routes/index.tsx:133` checks `if (i === 3 && adIdx < ADS.length)`.
-   - *Reasoning:* `i` is the loop index for `posts.forEach`. `i === 3` is satisfied exactly once (when index `i` is 3). At `i = 3`, `adIdx` increments from 0 to 1. For all subsequent posts (`i = 4, 5, ...`), `i === 3` evaluates to false.
-   - *Conclusion:* `ADS[1]` (Pinecone Vector Database) will never be appended to `trendItems` and is unreachable in the UI.
+   - _Observation:_ `routes/index.tsx:133` checks `if (i === 3 && adIdx < ADS.length)`.
+   - _Reasoning:_ `i` is the loop index for `posts.forEach`. `i === 3` is satisfied exactly once (when index `i` is 3). At `i = 3`, `adIdx` increments from 0 to 1. For all subsequent posts (`i = 4, 5, ...`), `i === 3` evaluates to false.
+   - _Conclusion:_ `ADS[1]` (Pinecone Vector Database) will never be appended to `trendItems` and is unreachable in the UI.
 
 4. **Missing Lightbox in Post Detail View**:
-   - *Observation:* `PostCard.tsx` imports `Lightbox` and manages `activeImage` state, while `routes/posts.$postId.tsx` defines its own `MediaBlock` (lines 323–395) without `Lightbox`.
-   - *Reasoning:* Navigating to `/posts/$postId` renders the route's local `MediaBlock`, which lacks click listeners and modal state.
-   - *Conclusion:* Users cannot expand post images in full-screen Lightbox when viewing the post detail page.
+   - _Observation:_ `PostCard.tsx` imports `Lightbox` and manages `activeImage` state, while `routes/posts.$postId.tsx` defines its own `MediaBlock` (lines 323–395) without `Lightbox`.
+   - _Reasoning:_ Navigating to `/posts/$postId` renders the route's local `MediaBlock`, which lacks click listeners and modal state.
+   - _Conclusion:_ Users cannot expand post images in full-screen Lightbox when viewing the post detail page.
 
 5. **Broken Nested Reply Sync & Comment Counter**:
-   - *Observation:* `CommentCard.tsx` calls `onAddReply`, but `routes/posts.$postId.tsx` renders `<CommentCard comment={comment} />` without providing `onAddReply`.
-   - *Reasoning:* Nested replies are appended only to `CommentCard`'s internal `localReplies` state. `commentPost(post.id)` is never invoked, and nested replies are not added to any top-level comments list or central store.
-   - *Conclusion:* Nested replies do not update the post's reply counter (`stats.comments`) and are lost upon route navigation.
+   - _Observation:_ `CommentCard.tsx` calls `onAddReply`, but `routes/posts.$postId.tsx` renders `<CommentCard comment={comment} />` without providing `onAddReply`.
+   - _Reasoning:_ Nested replies are appended only to `CommentCard`'s internal `localReplies` state. `commentPost(post.id)` is never invoked, and nested replies are not added to any top-level comments list or central store.
+   - _Conclusion:_ Nested replies do not update the post's reply counter (`stats.comments`) and are lost upon route navigation.
 
 ---
 

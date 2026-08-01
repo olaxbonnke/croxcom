@@ -19,7 +19,10 @@ export function MobileTopBar({ onNewPost }: { onNewPost?: () => void }) {
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-[70vw] max-w-[280px] border-r border-border/70 bg-background p-0">
+        <SheetContent
+          side="left"
+          className="w-[70vw] max-w-[280px] border-r border-border/70 bg-background p-0"
+        >
           <SheetTitle className="sr-only">Navigation</SheetTitle>
           <SideNav onNavigate={() => setOpen(false)} onNewPost={onNewPost} />
         </SheetContent>
@@ -49,7 +52,7 @@ export function MobileTabBar({ onNewPost }: { onNewPost?: () => void }) {
 
   // Show FAB only on home-level screens, not inside posts/profiles/settings/comments
   const showFab = FAB_VISIBLE_ROUTES.some((route) =>
-    route === "/" ? location.pathname === "/" : location.pathname.startsWith(route)
+    route === "/" ? location.pathname === "/" : location.pathname.startsWith(route),
   );
 
   return (

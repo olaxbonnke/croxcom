@@ -21,14 +21,18 @@ const AVATAR_COLORS = [
   "#f43f5e", // Rose
 ];
 
-export function ProfileHeader({ user: initialUser, isCurrentUser, onUpdateUser }: ProfileHeaderProps) {
+export function ProfileHeader({
+  user: initialUser,
+  isCurrentUser,
+  onUpdateUser,
+}: ProfileHeaderProps) {
   const { updateUser } = useAuth();
   const { posts } = usePosts();
-  
+
   const [user, setUser] = useState<MockUser>(initialUser);
   const [isFollowing, setIsFollowing] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  
+
   // User list modal state (Followers vs Following)
   const [userListMode, setUserListMode] = useState<"followers" | "following" | null>(null);
 
@@ -46,7 +50,7 @@ export function ProfileHeader({ user: initialUser, isCurrentUser, onUpdateUser }
 
   // Calculate real post count for this user
   const userPostsCount = posts.filter(
-    (p) => p.author.id === user.id || p.author.handle === user.handle
+    (p) => p.author.id === user.id || p.author.handle === user.handle,
   ).length;
 
   useEffect(() => {
@@ -199,9 +203,7 @@ export function ProfileHeader({ user: initialUser, isCurrentUser, onUpdateUser }
         {/* Real Stats & Clickable Followers/Following */}
         <div className="mt-4 flex gap-6 font-mono text-xs text-muted-foreground border-t border-border/40 pt-3">
           <div className="flex items-center gap-1">
-            <span className="text-foreground font-bold text-sm">
-              {userPostsCount}
-            </span>{" "}
+            <span className="text-foreground font-bold text-sm">{userPostsCount}</span>{" "}
             <span>posts</span>
           </div>
 
@@ -245,7 +247,10 @@ export function ProfileHeader({ user: initialUser, isCurrentUser, onUpdateUser }
 
             <div className="p-3 max-h-80 overflow-y-auto divide-y divide-border/40 scrollbar-none">
               {sampleUsersList.map((u) => (
-                <div key={u.id} className="flex items-center justify-between py-2.5 px-2 hover:bg-accent/30 rounded-lg transition-colors">
+                <div
+                  key={u.id}
+                  className="flex items-center justify-between py-2.5 px-2 hover:bg-accent/30 rounded-lg transition-colors"
+                >
                   <Link
                     to="/profile/$handle"
                     params={{ handle: u.handle }}
@@ -260,7 +265,9 @@ export function ProfileHeader({ user: initialUser, isCurrentUser, onUpdateUser }
                     </div>
                     <div className="min-w-0">
                       <div className="truncate text-sm font-medium text-foreground">{u.name}</div>
-                      <div className="truncate font-mono text-xs text-muted-foreground">@{u.handle}</div>
+                      <div className="truncate font-mono text-xs text-muted-foreground">
+                        @{u.handle}
+                      </div>
                     </div>
                   </Link>
 
@@ -279,9 +286,7 @@ export function ProfileHeader({ user: initialUser, isCurrentUser, onUpdateUser }
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
           <div className="w-full max-w-md overflow-hidden rounded-xl border border-border/80 bg-background shadow-2xl">
             <div className="flex items-center justify-between border-b border-border/60 bg-muted/20 px-4 py-3">
-              <span className="font-mono text-xs text-primary font-semibold">
-                $ profile --edit
-              </span>
+              <span className="font-mono text-xs text-primary font-semibold">$ profile --edit</span>
               <button
                 type="button"
                 onClick={() => setShowEditModal(false)}
@@ -303,7 +308,11 @@ export function ProfileHeader({ user: initialUser, isCurrentUser, onUpdateUser }
                     style={{ backgroundColor: avatarColor, color: "#0a0a0a" }}
                   >
                     {avatar ? (
-                      <img src={avatar} alt="Avatar Preview" className="h-full w-full object-cover" />
+                      <img
+                        src={avatar}
+                        alt="Avatar Preview"
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
                       initials
                     )}
@@ -343,7 +352,11 @@ export function ProfileHeader({ user: initialUser, isCurrentUser, onUpdateUser }
                 <div className="space-y-2">
                   {banner && (
                     <div className="h-16 w-full rounded-md border border-border overflow-hidden bg-cover bg-center">
-                      <img src={banner} alt="Banner Preview" className="h-full w-full object-cover" />
+                      <img
+                        src={banner}
+                        alt="Banner Preview"
+                        className="h-full w-full object-cover"
+                      />
                     </div>
                   )}
                   <input
@@ -376,9 +389,7 @@ export function ProfileHeader({ user: initialUser, isCurrentUser, onUpdateUser }
               </div>
 
               <div>
-                <label className="block font-mono text-xs text-muted-foreground mb-1">
-                  Name
-                </label>
+                <label className="block font-mono text-xs text-muted-foreground mb-1">Name</label>
                 <input
                   type="text"
                   value={name}
@@ -413,9 +424,7 @@ export function ProfileHeader({ user: initialUser, isCurrentUser, onUpdateUser }
               </div>
 
               <div>
-                <label className="block font-mono text-xs text-muted-foreground mb-1">
-                  Bio
-                </label>
+                <label className="block font-mono text-xs text-muted-foreground mb-1">Bio</label>
                 <textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}

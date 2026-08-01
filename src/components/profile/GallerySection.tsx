@@ -152,9 +152,7 @@ export function GallerySection({ isCurrentUser = true, userHandle }: GallerySect
           setPersonalImages((prev) => [...prev, url]);
         } else {
           setGalleries((prev) =>
-            prev.map((g) =>
-              g.id === galleryId ? { ...g, images: [...g.images, url] } : g
-            )
+            prev.map((g) => (g.id === galleryId ? { ...g, images: [...g.images, url] } : g)),
           );
         }
       };
@@ -169,10 +167,8 @@ export function GallerySection({ isCurrentUser = true, userHandle }: GallerySect
     } else {
       setGalleries((prev) =>
         prev.map((g) =>
-          g.id === galleryId
-            ? { ...g, images: g.images.filter((_, i) => i !== imgIdx) }
-            : g
-        )
+          g.id === galleryId ? { ...g, images: g.images.filter((_, i) => i !== imgIdx) } : g,
+        ),
       );
     }
   };
@@ -218,7 +214,7 @@ export function GallerySection({ isCurrentUser = true, userHandle }: GallerySect
                 }}
                 className={cn(
                   "flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-accent/60 cursor-pointer",
-                  !activeGalleryId && "bg-accent/40 text-primary"
+                  !activeGalleryId && "bg-accent/40 text-primary",
                 )}
               >
                 <ImageIcon className="h-4 w-4 text-muted-foreground" />
@@ -234,7 +230,7 @@ export function GallerySection({ isCurrentUser = true, userHandle }: GallerySect
                   }}
                   className={cn(
                     "flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-accent/60 cursor-pointer",
-                    activeGalleryId === g.id && "bg-accent/40 text-primary"
+                    activeGalleryId === g.id && "bg-accent/40 text-primary",
                   )}
                 >
                   <Globe className="h-4 w-4 text-muted-foreground" />
@@ -271,7 +267,9 @@ export function GallerySection({ isCurrentUser = true, userHandle }: GallerySect
         personalImages={personalImages}
         onUpload={(files) => handleUpload(activeGalleryId, files)}
         onRemoveImage={(idx) => removeImage(activeGalleryId, idx)}
-        onDelete={isCurrentUser && activeGallery ? () => deleteGallery(activeGallery.id) : undefined}
+        onDelete={
+          isCurrentUser && activeGallery ? () => deleteGallery(activeGallery.id) : undefined
+        }
         isPersonal={!activeGallery}
         isCurrentUser={isCurrentUser}
       />
@@ -363,7 +361,7 @@ function GalleryBody({
               )}
             </div>
           ))}
-          
+
           {/* Upload button inside grid (ONLY FOR CURRENT USER) */}
           {isCurrentUser && (
             <button
@@ -438,9 +436,7 @@ function CreateGalleryModal({
 
         <div className="p-4 space-y-4">
           <div>
-            <label className="mb-1.5 block font-mono text-xs text-muted-foreground">
-              name
-            </label>
+            <label className="mb-1.5 block font-mono text-xs text-muted-foreground">name</label>
             <input
               type="text"
               value={name}
@@ -477,10 +473,14 @@ function CreateGalleryModal({
                     "flex flex-1 items-center justify-center gap-2 rounded-md border py-2 font-mono text-xs transition-colors cursor-pointer",
                     privacy === p
                       ? "border-primary/60 bg-primary/10 text-primary font-semibold"
-                      : "border-border/70 text-muted-foreground hover:border-border hover:text-foreground"
+                      : "border-border/70 text-muted-foreground hover:border-border hover:text-foreground",
                   )}
                 >
-                  {p === "public" ? <Globe className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
+                  {p === "public" ? (
+                    <Globe className="h-3.5 w-3.5" />
+                  ) : (
+                    <Lock className="h-3.5 w-3.5" />
+                  )}
                   {p}
                 </button>
               ))}

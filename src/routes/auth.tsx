@@ -12,19 +12,38 @@ export const Route = createFileRoute("/auth")({
 
 type AuthPhase = "loading" | "login" | "onboarding";
 
-const TOOLS_LIST = ["PyTorch", "vLLM", "Transformers", "LangChain", "Ollama", "LlamaIndex", "Next.js", "Triton"];
-const INTERESTS_LIST = ["RAG & Vector DBs", "Model Fine-Tuning", "Autonomous Agents", "Interpretability", "Synthetic Data", "Evals"];
+const TOOLS_LIST = [
+  "PyTorch",
+  "vLLM",
+  "Transformers",
+  "LangChain",
+  "Ollama",
+  "LlamaIndex",
+  "Next.js",
+  "Triton",
+];
+const INTERESTS_LIST = [
+  "RAG & Vector DBs",
+  "Model Fine-Tuning",
+  "Autonomous Agents",
+  "Interpretability",
+  "Synthetic Data",
+  "Evals",
+];
 
 function AuthPage() {
   const navigate = useNavigate();
   const { isAuthenticated, hasCompletedOnboarding, login, completeOnboarding } = useAuth();
-  
+
   const [phase, setPhase] = useState<AuthPhase>("loading");
   const [email, setEmail] = useState("");
-  
+
   // Onboarding state
   const [selectedTools, setSelectedTools] = useState<string[]>(["PyTorch", "vLLM"]);
-  const [selectedInterests, setSelectedInterests] = useState<string[]>(["Autonomous Agents", "RAG & Vector DBs"]);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([
+    "Autonomous Agents",
+    "RAG & Vector DBs",
+  ]);
   const [devPosition, setDevPosition] = useState<"Solo" | "Team">("Team");
   const [teamRole, setTeamRole] = useState("AI Infrastructure Engineer");
 
@@ -271,7 +290,9 @@ function AuthPage() {
                       <button
                         key={interest}
                         type="button"
-                        onClick={() => toggleItem(selectedInterests, setSelectedInterests, interest)}
+                        onClick={() =>
+                          toggleItem(selectedInterests, setSelectedInterests, interest)
+                        }
                         className={`font-mono text-xs rounded-md px-3 py-1.5 border transition-all cursor-pointer flex items-center gap-1.5 ${
                           active
                             ? "border-primary bg-primary/10 text-primary font-semibold"
@@ -322,7 +343,10 @@ function AuthPage() {
 
               {/* Conditional Role input if Team */}
               {devPosition === "Team" && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                >
                   <label className="block font-mono text-xs text-muted-foreground mb-1">
                     Your Role in Team
                   </label>

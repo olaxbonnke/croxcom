@@ -29,7 +29,13 @@ const NAV: NavItem[] = [
   { label: "Settings", to: "/more", icon: Settings },
 ];
 
-export function SideNav({ onNavigate, onNewPost }: { onNavigate?: () => void; onNewPost?: () => void }) {
+export function SideNav({
+  onNavigate,
+  onNewPost,
+}: {
+  onNavigate?: () => void;
+  onNewPost?: () => void;
+}) {
   const { currentUser } = useAuth();
 
   return (
@@ -68,17 +74,28 @@ export function SideNav({ onNavigate, onNewPost }: { onNavigate?: () => void; on
         <div
           aria-hidden
           className="grid h-8 w-8 shrink-0 place-items-center rounded-md font-mono text-xs overflow-hidden"
-          style={{ background: currentUser.avatarColor, color: '#0a0a0a' }}
+          style={{ background: currentUser.avatarColor, color: "#0a0a0a" }}
         >
           {currentUser.avatar ? (
-            <img src={currentUser.avatar} alt={currentUser.name} className="h-full w-full object-cover" />
+            <img
+              src={currentUser.avatar}
+              alt={currentUser.name}
+              className="h-full w-full object-cover"
+            />
           ) : (
-            currentUser.name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()
+            currentUser.name
+              .split(" ")
+              .map((p) => p[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase()
           )}
         </div>
         <div className="min-w-0 leading-tight">
           <div className="truncate text-sm text-foreground font-medium">{currentUser.name}</div>
-          <div className="truncate font-mono text-xs text-muted-foreground">@{currentUser.handle}</div>
+          <div className="truncate font-mono text-xs text-muted-foreground">
+            @{currentUser.handle}
+          </div>
         </div>
       </Link>
     </nav>

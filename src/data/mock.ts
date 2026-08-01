@@ -211,8 +211,7 @@ export const mockPosts: MockPost[] = [
     author: priya,
     community: rag,
     time: "34m",
-    body:
-      "Reranking > bigger embedding models, at least for our corpus. Swapping to a cross-encoder reranker cut hallucinated citations by ~41% on our internal eval set, while the embedding model stayed put.\n\nA short thread on what actually moved the needle:",
+    body: "Reranking > bigger embedding models, at least for our corpus. Swapping to a cross-encoder reranker cut hallucinated citations by ~41% on our internal eval set, while the embedding model stayed put.\n\nA short thread on what actually moved the needle:",
     tags: ["rag", "retrieval", "evals"],
     stats: { comments: 42, reposts: 18, likes: 312 },
     longForm: true,
@@ -231,8 +230,7 @@ export const mockPosts: MockPost[] = [
     author: nia,
     community: infra,
     time: "2h",
-    body:
-      "Quick GPU sanity check I run on every new box before benchmarks — catches thermal throttling, PCIe lane weirdness, and the classic 'wrong CUDA version' foot-gun.",
+    body: "Quick GPU sanity check I run on every new box before benchmarks — catches thermal throttling, PCIe lane weirdness, and the classic 'wrong CUDA version' foot-gun.",
     tags: ["cuda", "infra"],
     media: {
       kind: "code",
@@ -262,8 +260,7 @@ python -c "import torch; a=torch.randn(8192,8192,device='cuda'); torch.cuda.sync
     author: kenji,
     community: finetuning,
     time: "5h",
-    body:
-      "DPO vs SFT-then-DPO on a 7B for a customer-support task. Same data budget. TL;DR: SFT warmup still matters when the base model hasn't seen the domain.",
+    body: "DPO vs SFT-then-DPO on a 7B for a customer-support task. Same data budget. TL;DR: SFT warmup still matters when the base model hasn't seen the domain.",
     tags: ["dpo", "sft", "training"],
     stats: { comments: 27, reposts: 9, likes: 154 },
   },
@@ -275,10 +272,22 @@ python -c "import torch; a=torch.randn(8192,8192,device='cuda'); torch.cuda.sync
     media: {
       kind: "image-grid",
       images: [
-        { url: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80", alt: "Code on a dark screen" },
-        { url: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=800&q=80", alt: "Terminal window" },
-        { url: "https://images.unsplash.com/photo-1517134191118-9d595e4c8c2b?w=800&q=80", alt: "Graphs on a laptop" },
-        { url: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&q=80", alt: "Developer at a desk" },
+        {
+          url: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80",
+          alt: "Code on a dark screen",
+        },
+        {
+          url: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=800&q=80",
+          alt: "Terminal window",
+        },
+        {
+          url: "https://images.unsplash.com/photo-1517134191118-9d595e4c8c2b?w=800&q=80",
+          alt: "Graphs on a laptop",
+        },
+        {
+          url: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&q=80",
+          alt: "Developer at a desk",
+        },
       ],
     },
     stats: { comments: 11, reposts: 4, likes: 96 },
@@ -288,8 +297,7 @@ python -c "import torch; a=torch.randn(8192,8192,device='cuda'); torch.cuda.sync
     author: ada,
     community: evals,
     time: "9h",
-    body:
-      "PSA: your eval set is probably too easy. If your model scores >95% and shipping still surprises you, the eval isn't measuring what production hits. Log real traffic, sample the failures, promote them into the set.",
+    body: "PSA: your eval set is probably too easy. If your model scores >95% and shipping still surprises you, the eval isn't measuring what production hits. Log real traffic, sample the failures, promote them into the set.",
     tags: ["evals"],
     stats: { comments: 38, reposts: 22, likes: 511 },
   },
@@ -492,7 +500,8 @@ export const mockNotifications: MockNotification[] = [
     actor: kenji,
     time: "1h",
     read: true,
-    excerpt: "Cross-encoders see the full context of query + doc together, so they can catch relevance signals…",
+    excerpt:
+      "Cross-encoders see the full context of query + doc together, so they can catch relevance signals…",
     postId: "p1",
   },
   {
@@ -551,12 +560,42 @@ export const mockConversations: MockConversation[] = [
     unread: 2,
     messages: [
       { id: "m1", senderId: "u1", body: "Hey! Loved your reranking post.", time: "1h" },
-      { id: "m2", senderId: "me", body: "Thanks! The results surprised even us honestly.", time: "58m" },
-      { id: "m3", senderId: "u1", body: "What reranker lib are you using under the hood? sentence-transformers?", time: "55m" },
-      { id: "m4", senderId: "me", body: "Yes, sentence-transformers with bge-reranker-large. We wrapped it in a small FastAPI service.", time: "52m" },
-      { id: "m5", senderId: "u1", body: "Nice. We're debating between that and a hosted reranking endpoint. The latency tradeoff is real.", time: "20m" },
-      { id: "m6", senderId: "me", body: "Self-hosted is worth it once you're at scale. p95 was under 90ms for us on 100 candidates.", time: "18m" },
-      { id: "m7", senderId: "u1", body: "Let me know what you find on the reranker latency side.", time: "14m" },
+      {
+        id: "m2",
+        senderId: "me",
+        body: "Thanks! The results surprised even us honestly.",
+        time: "58m",
+      },
+      {
+        id: "m3",
+        senderId: "u1",
+        body: "What reranker lib are you using under the hood? sentence-transformers?",
+        time: "55m",
+      },
+      {
+        id: "m4",
+        senderId: "me",
+        body: "Yes, sentence-transformers with bge-reranker-large. We wrapped it in a small FastAPI service.",
+        time: "52m",
+      },
+      {
+        id: "m5",
+        senderId: "u1",
+        body: "Nice. We're debating between that and a hosted reranking endpoint. The latency tradeoff is real.",
+        time: "20m",
+      },
+      {
+        id: "m6",
+        senderId: "me",
+        body: "Self-hosted is worth it once you're at scale. p95 was under 90ms for us on 100 candidates.",
+        time: "18m",
+      },
+      {
+        id: "m7",
+        senderId: "u1",
+        body: "Let me know what you find on the reranker latency side.",
+        time: "14m",
+      },
     ],
   },
   {
@@ -566,11 +605,36 @@ export const mockConversations: MockConversation[] = [
     lastTime: "2h",
     unread: 0,
     messages: [
-      { id: "m8", senderId: "u4", body: "Saw your post on hybrid retrieval. Solid numbers.", time: "3h" },
-      { id: "m9", senderId: "me", body: "Thanks — took a while to tune the BM25/dense ratio properly.", time: "2h 50m" },
-      { id: "m10", senderId: "u4", body: "Have you tried combining with graph-based retrieval at all?", time: "2h 30m" },
-      { id: "m11", senderId: "me", body: "Not yet. What's your experience with it?", time: "2h 20m" },
-      { id: "m12", senderId: "u4", body: "We should co-write something on minimal agent loops.", time: "2h" },
+      {
+        id: "m8",
+        senderId: "u4",
+        body: "Saw your post on hybrid retrieval. Solid numbers.",
+        time: "3h",
+      },
+      {
+        id: "m9",
+        senderId: "me",
+        body: "Thanks — took a while to tune the BM25/dense ratio properly.",
+        time: "2h 50m",
+      },
+      {
+        id: "m10",
+        senderId: "u4",
+        body: "Have you tried combining with graph-based retrieval at all?",
+        time: "2h 30m",
+      },
+      {
+        id: "m11",
+        senderId: "me",
+        body: "Not yet. What's your experience with it?",
+        time: "2h 20m",
+      },
+      {
+        id: "m12",
+        senderId: "u4",
+        body: "We should co-write something on minimal agent loops.",
+        time: "2h",
+      },
     ],
   },
   {
@@ -580,11 +644,31 @@ export const mockConversations: MockConversation[] = [
     lastTime: "1d",
     unread: 0,
     messages: [
-      { id: "m13", senderId: "u2", body: "Working on a new eval suite for RAG. Mind if I bounce ideas?", time: "2d" },
+      {
+        id: "m13",
+        senderId: "u2",
+        body: "Working on a new eval suite for RAG. Mind if I bounce ideas?",
+        time: "2d",
+      },
       { id: "m14", senderId: "me", body: "Of course! What's the use case?", time: "1d 23h" },
-      { id: "m15", senderId: "u2", body: "Customer support Q&A. Hard part is defining 'correct' for open-ended answers.", time: "1d 20h" },
-      { id: "m16", senderId: "me", body: "LLM-as-judge with rubrics tends to work well for that. G-eval or prometheus-eval.", time: "1d 18h" },
-      { id: "m17", senderId: "u2", body: "Happy to review the eval design before you ship.", time: "1d" },
+      {
+        id: "m15",
+        senderId: "u2",
+        body: "Customer support Q&A. Hard part is defining 'correct' for open-ended answers.",
+        time: "1d 20h",
+      },
+      {
+        id: "m16",
+        senderId: "me",
+        body: "LLM-as-judge with rubrics tends to work well for that. G-eval or prometheus-eval.",
+        time: "1d 18h",
+      },
+      {
+        id: "m17",
+        senderId: "u2",
+        body: "Happy to review the eval design before you ship.",
+        time: "1d",
+      },
     ],
   },
   {
@@ -594,10 +678,25 @@ export const mockConversations: MockConversation[] = [
     lastTime: "3d",
     unread: 1,
     messages: [
-      { id: "m18", senderId: "u5", body: "Quick question — A100 PCIe vs SXM for fine-tuning a 13B?", time: "3d 2h" },
-      { id: "m19", senderId: "me", body: "How long are your training runs? SXM has way better interconnect.", time: "3d 1h" },
+      {
+        id: "m18",
+        senderId: "u5",
+        body: "Quick question — A100 PCIe vs SXM for fine-tuning a 13B?",
+        time: "3d 2h",
+      },
+      {
+        id: "m19",
+        senderId: "me",
+        body: "How long are your training runs? SXM has way better interconnect.",
+        time: "3d 1h",
+      },
       { id: "m20", senderId: "u5", body: "About 6-8 hours per run, multi-GPU.", time: "3d 30m" },
-      { id: "m21", senderId: "u5", body: "The A100 SXM is definitely worth it for long training runs.", time: "3d" },
+      {
+        id: "m21",
+        senderId: "u5",
+        body: "The A100 SXM is definitely worth it for long training runs.",
+        time: "3d",
+      },
     ],
   },
 ];

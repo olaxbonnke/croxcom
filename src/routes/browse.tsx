@@ -19,22 +19,28 @@ function BrowsePage() {
     (c) =>
       c.name.toLowerCase().includes(q) ||
       c.description.toLowerCase().includes(q) ||
-      c.tags?.some((t) => t.toLowerCase().includes(q))
+      c.tags?.some((t) => t.toLowerCase().includes(q)),
   );
 
   const filteredTrending = trending.filter((t) => t.topic.toLowerCase().includes(q));
 
-  const filteredPeople = mockUsers.slice(1).filter(
-    (u) =>
-      u.name.toLowerCase().includes(q) ||
-      u.handle.toLowerCase().includes(q) ||
-      u.role?.toLowerCase().includes(q)
-  );
+  const filteredPeople = mockUsers
+    .slice(1)
+    .filter(
+      (u) =>
+        u.name.toLowerCase().includes(q) ||
+        u.handle.toLowerCase().includes(q) ||
+        u.role?.toLowerCase().includes(q),
+    );
 
   const toggleFollow = (id: string) => {
     setFollowedUserIds((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };

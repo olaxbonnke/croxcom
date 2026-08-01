@@ -1,6 +1,7 @@
 # Handoff Report — reviewer_2
 
 ## 1. Observation
+
 - **TypeScript & Build Health**:
   - `npx tsc --noEmit`: Executed successfully with exit code 0 (0 errors).
   - `npm run build`: Executed successfully with exit code 0; Nitro generated `.output` assets and Cloudflare worker bundle.
@@ -25,6 +26,7 @@
   - Border hygiene: `AppShell.tsx` line 58 (`aside` has `border-r`), line 64 (`main` has `border-r`), line 68 (`RightRail` has no left border). No double borders.
 
 ## 2. Logic Chain
+
 1. **Build Health**: Step 1 confirmed `npx tsc --noEmit` and `npm run build` completed without errors.
 2. **Code Block Contrast Defect**:
    - Observation: In `PostCard.tsx`, the code container has background `#0d0d0d` (near black), but the text relies on `text-foreground/90`.
@@ -40,15 +42,18 @@
    - Observation: Glassmorphism (`backdrop-blur`), `#00ff9f` primary accent, avatar dark text on pastel backgrounds, and single-border columns in `AppShell.tsx` all meet quality standards.
 
 ## 3. Caveats
+
 - No caveats. All core layout files, stylesheets, theme scripts, and build outputs were inspected directly.
 
 ## 4. Conclusion
+
 - **Verdict**: **REQUEST_CHANGES**
 - **Actionable Findings**:
   1. **Critical Visual Defect**: Fix code block readability in `src/components/feed/PostCard.tsx` line 402 by changing `text-foreground/90` to `text-zinc-100` (matching `posts.$postId.tsx`).
   2. **Major Theme Leak**: Remove `className="dark"` from `html` element in `src/routes/__root.tsx` line 125 so hydration does not force `.dark` class back onto light-mode users.
 
 ## 5. Verification Method
+
 - **Build Verification**:
   `npx tsc --noEmit`
   `npm run build`

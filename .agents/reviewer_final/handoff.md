@@ -79,6 +79,7 @@ The CroxCom platform is fully built, cleanly typed, correctly structured, and re
 ## 5. Verification Method
 
 To independently verify this sign-off:
+
 1. Run `npm run build` in `c:\Users\olait\Documents\My Coding\croxcom`. Confirm output ends with `✓ built in ...` and 0 errors.
 2. Inspect `src/routes/` to verify the 11 route files.
 3. Inspect `src/components/feed/Composer.tsx` for the IDE code section implementation.
