@@ -7,6 +7,7 @@ import { nitro } from "nitro/vite";
 import path from "node:path";
 
 export default defineConfig({
+  base: process.env.NODE_ENV === "production" ? "/croxcom/" : "/",
   plugins: [
     tailwindcss(),
     tsConfigPaths({ projects: ["./tsconfig.json"] }),
