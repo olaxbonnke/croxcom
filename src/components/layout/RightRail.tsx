@@ -197,39 +197,10 @@ export function RightRail() {
         </section>
 
 
-        {/* Suggested Communities */}
-        <section className="rounded-lg border border-border/70 bg-card/60 backdrop-blur-sm">
-          <header className="border-b border-border/70 px-4 py-3">
-            <h2 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-              # suggested communities
-            </h2>
-          </header>
-          <ul className="divide-y divide-border/60">
-            {mockCommunities.slice(0, 4).map((c) => (
-              <li key={c.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                <div className="min-w-0">
-                  <Link
-                    to="/communities/$slug"
-                    params={{ slug: c.slug }}
-                    className="truncate font-mono text-sm text-foreground hover:underline"
-                  >
-                    /{c.name}
-                  </Link>
-                  <div className="truncate text-xs text-muted-foreground">
-                    {c.members.toLocaleString()} members
-                  </div>
-                </div>
-                <button className="shrink-0 rounded-md border border-border px-3 py-1 font-mono text-xs text-foreground transition-colors hover:border-primary hover:text-primary cursor-pointer">
-                  join
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-
         <p className="px-1 font-mono text-[11px] leading-relaxed text-muted-foreground/70">
           croxcom v0.1 · a community for ai developers
         </p>
+
       </div>
     </aside>
   );
