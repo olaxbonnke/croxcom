@@ -6,7 +6,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { type MockPost, type MockComment } from "@/data/mock";
 import { useAuth } from "@/lib/AuthContext";
-import { isSupabaseConfigured, fetchPostsSupabase, createPostSupabase } from "@/lib/supabase";
+import { isSupabaseConfigured, fetchPostsSupabase, createPostSupabase, subscribeToPosts } from "@/lib/supabase";
 
 type PostContextType = {
   posts: MockPost[];
@@ -41,7 +41,7 @@ export function PostProvider({ children }: { children: ReactNode }) {
   const [mutedUserHandles, setMutedUserHandles] = useState<Set<string>>(new Set());
   const [blockedUserHandles, setBlockedUserHandles] = useState<Set<string>>(new Set());
 
-  // Load live posts from Supabase on mount
+  // Load live posts from Supabase on mount and subscribe to realtime updates
   useEffect(() => {
     async function loadLivePosts() {
       if (isSupabaseConfigured) {
@@ -73,7 +73,37 @@ export function PostProvider({ children }: { children: ReactNode }) {
       }
     }
     loadLivePosts();
+
+    let unsubscribe = () => {};
+    if (isSupabaseConfigured) {
+      unsubscribe = subscribeToPosts((payload) => {
+        if (payload.eventType === "INSERT" && payload.new) {
+          const sp = payload.new;
+          setPosts((prev) => {
+            if (prev.some((p) => p.id === sp.id)) return prev;
+            const newMapped: MockPost = {
+              id: sp.id,
+              author: {
+                id: sp.author_id,
+                name: "AI Developer",
+                handle: "developer",
+                avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+                role: "AI Developer",
+              },
+              time: "Just now",
+              body: sp.content,
+              tags: sp.tags || [],
+              stats: { likes: 0, comments: 0, reposts: 0 },
+            };
+            return [newMapped, ...prev];
+          });
+        }
+      });
+    }
+
+    return () => unsubscribe();
   }, []);
+
 
   const addPost = useCallback(
     async (post: MockPost) => {

@@ -110,6 +110,52 @@ create policy "Users can create bookmarks" on public.bookmarks
 create policy "Users can delete their own bookmarks" on public.bookmarks
   for delete using (auth.uid() = user_id);
 
+-- MESSAGES TABLE (Direct Messaging)
+create table public.messages (
+  id uuid default gen_random_uuid() primary key,
+  created_at timestamptz default now() not null,
+  sender_id uuid references public.profiles(id) on delete cascade not null,
+  receiver_id uuid references public.profiles(id) on delete cascade not null,
+  content text not null,
+  is_read boolean default false
+);
+
+-- NOTIFICATIONS TABLE
+create table public.notifications (
+  id uuid default gen_random_uuid() primary key,
+  created_at timestamptz default now() not null,
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  actor_id uuid references public.profiles(id) on delete cascade,
+  kind text not null, -- 'like', 'repost', 'comment', 'mention', 'system'
+  post_id uuid references public.posts(id) on delete cascade,
+  content text,
+  is_read boolean default false
+);
+
+-- ENABLE ROW LEVEL SECURITY
+alter table public.messages enable row level security;
+alter table public.notifications enable row level security;
+
+-- MESSAGES POLICIES
+create policy "Users can view their own sent or received messages" on public.messages
+  for select using (auth.uid() = sender_id or auth.uid() = receiver_id);
+
+create policy "Users can send messages" on public.messages
+  for insert with check (auth.uid() = sender_id);
+
+-- NOTIFICATIONS POLICIES
+create policy "Users can view their own notifications" on public.notifications
+  for select using (auth.uid() = user_id);
+
+create policy "Users can update their own notifications" on public.notifications
+  for update using (auth.uid() = user_id);
+
+-- ENABLE REALTIME PUBLICATIONS ON PUBLIC TABLES
+alter publication supabase_realtime add table public.posts;
+alter publication supabase_realtime add table public.comments;
+alter publication supabase_realtime add table public.messages;
+alter publication supabase_realtime add table public.notifications;
+
 -- TRIGGER FOR NEW USER CREATION FROM AUTH.USERS
 create or replace function public.handle_new_user()
 returns trigger as $$
@@ -129,3 +175,4 @@ $$ language plpgsql security definer;
 create or replace trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+

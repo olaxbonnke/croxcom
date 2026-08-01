@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/layout/AppShell";
 import { ConversationList } from "@/components/messages/ConversationList";
@@ -6,17 +6,55 @@ import { MessageThread } from "@/components/messages/MessageThread";
 import { MessageInput } from "@/components/messages/MessageInput";
 import { mockConversations, mockUsers, type MockUser, type MockConversation } from "@/data/mock";
 import { Search, X, MessageSquarePlus } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
+import { subscribeToMessages, sendMessageSupabase, isSupabaseConfigured } from "@/lib/supabase";
 
 export const Route = createFileRoute("/messages")({
   component: MessagesPage,
 });
 
 function MessagesPage() {
+  const { currentUser } = useAuth();
   const [conversations, setConversations] = useState<MockConversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showNewModal, setShowNewModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  useEffect(() => {
+    let unsubscribe = () => {};
+    if (isSupabaseConfigured && currentUser?.id) {
+      unsubscribe = subscribeToMessages(currentUser.id, (payload) => {
+        if (payload.new) {
+          const incomingMsg = {
+            id: payload.new.id,
+            senderId: payload.new.sender_id === currentUser.id ? "me" : payload.new.sender_id,
+            body: payload.new.content,
+            time: "Just now",
+          };
+
+          setConversations((prev) =>
+            prev.map((c) => {
+              if (
+                c.id === activeId ||
+                c.participant.id === payload.new.sender_id ||
+                c.participant.id === payload.new.receiver_id
+              ) {
+                return {
+                  ...c,
+                  lastMessage: payload.new.content,
+                  lastTime: "Just now",
+                  messages: [...c.messages, incomingMsg],
+                };
+              }
+              return c;
+            }),
+          );
+        }
+      });
+    }
+
+    return () => unsubscribe();
+  }, [currentUser, activeId]);
 
   const activeConv = conversations.find((c) => c.id === activeId);
 
@@ -34,6 +72,10 @@ function MessagesPage() {
       time: "Just now",
     };
 
+    if (isSupabaseConfigured && currentUser?.id && activeConv?.participant.id) {
+      sendMessageSupabase(currentUser.id, activeConv.participant.id, body);
+    }
+
     setConversations((prev) =>
       prev.map((c) => {
         if (c.id === activeId) {
@@ -48,6 +90,7 @@ function MessagesPage() {
       }),
     );
   };
+
 
   const handleStartConversation = (user: MockUser) => {
     const existing = conversations.find((c) => c.participant.handle === user.handle);

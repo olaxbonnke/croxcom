@@ -4,6 +4,8 @@ import { NotifItem } from "@/components/notifications/NotifItem";
 import { mockNotifications } from "@/data/mock";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useAuth } from "@/lib/AuthContext";
+import { subscribeToNotifications, isSupabaseConfigured } from "@/lib/supabase";
 
 import { NotificationSkeleton } from "@/components/feed/Skeleton";
 
@@ -12,15 +14,41 @@ export const Route = createFileRoute("/notifications")({
 });
 
 function NotificationsPage() {
+  const { currentUser } = useAuth();
   const [tab, setTab] = useState<"all" | "mentions">("all");
   const [notifications, setNotifications] = useState<typeof mockNotifications>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 150);
-    return () => clearTimeout(timer);
-  }, []);
+
+    let unsubscribe = () => {};
+    if (isSupabaseConfigured && currentUser?.id) {
+      unsubscribe = subscribeToNotifications(currentUser.id, (payload) => {
+        if (payload.new) {
+          const newNotif = {
+            id: payload.new.id,
+            actor: {
+              name: payload.new.actor?.name || "Developer",
+              handle: payload.new.actor?.handle || "dev",
+              avatarColor: "#00ff9f",
+            },
+            kind: payload.new.kind || "system",
+            target: payload.new.content || "your post",
+            time: "Just now",
+            read: false,
+          };
+          setNotifications((prev) => [newNotif as any, ...prev]);
+        }
+      });
+    }
+
+    return () => {
+      clearTimeout(timer);
+      unsubscribe();
+    };
+  }, [currentUser]);
+
 
   const filtered =
     tab === "all" ? notifications : notifications.filter((n) => n.kind === "mention");

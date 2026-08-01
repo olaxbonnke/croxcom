@@ -195,3 +195,104 @@ export async function toggleBookmarkSupabase(userId: string, postId: string, isS
   }
 }
 
+/**
+ * Subscribe to Realtime Posts updates
+ */
+export function subscribeToPosts(onPayload: (payload: any) => void) {
+  if (!isSupabaseConfigured) return () => {};
+
+  const channel = supabase
+    .channel("public:posts")
+    .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, onPayload)
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}
+
+/**
+ * Fetch Notifications from Supabase
+ */
+export async function fetchNotificationsSupabase(userId: string) {
+  if (!isSupabaseConfigured) return [];
+  const { data, error } = await supabase
+    .from("notifications")
+    .select("*, actor:profiles!notifications_actor_id_fkey(*)")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching notifications:", error);
+    return [];
+  }
+  return data || [];
+}
+
+/**
+ * Subscribe to Realtime Notifications
+ */
+export function subscribeToNotifications(userId: string, onPayload: (payload: any) => void) {
+  if (!isSupabaseConfigured) return () => {};
+
+  const channel = supabase
+    .channel(`public:notifications:${userId}`)
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
+      onPayload,
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}
+
+/**
+ * Send Direct Message via Supabase
+ */
+export async function sendMessageSupabase(senderId: string, receiverId: string, content: string) {
+  if (!isSupabaseConfigured) return null;
+  const { data, error } = await supabase
+    .from("messages")
+    .insert({
+      sender_id: senderId,
+      receiver_id: receiverId,
+      content,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error sending message:", error);
+    return null;
+  }
+  return data;
+}
+
+/**
+ * Subscribe to Realtime Direct Messages
+ */
+export function subscribeToMessages(userId: string, onPayload: (payload: any) => void) {
+  if (!isSupabaseConfigured) return () => {};
+
+  const channel = supabase
+    .channel(`public:messages:${userId}`)
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "messages" },
+      (payload) => {
+        if (payload.new?.sender_id === userId || payload.new?.receiver_id === userId) {
+          onPayload(payload);
+        }
+      },
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}
+
+
