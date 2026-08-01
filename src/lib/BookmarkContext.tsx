@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { useAuth } from "@/lib/AuthContext";
+import { isSupabaseConfigured, fetchBookmarksSupabase, toggleBookmarkSupabase } from "@/lib/supabase";
 
 interface BookmarkContextType {
   savedPosts: string[];
@@ -10,24 +12,41 @@ interface BookmarkContextType {
 const BookmarkContext = createContext<BookmarkContextType | undefined>(undefined);
 
 export function BookmarkProvider({ children }: { children: ReactNode }) {
+  const { currentUser } = useAuth();
   const [savedPosts, setSavedPosts] = useState<string[]>([]);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("croxcom-bookmarks");
-      if (stored) {
-        setSavedPosts(JSON.parse(stored));
+    async function loadBookmarks() {
+      if (isSupabaseConfigured && currentUser?.id) {
+        const sbBookmarks = await fetchBookmarksSupabase(currentUser.id);
+        if (sbBookmarks.length > 0) {
+          setSavedPosts(sbBookmarks);
+          return;
+        }
       }
-    } catch (e) {
-      console.error("Failed to parse bookmarks", e);
+
+      try {
+        const stored = localStorage.getItem("croxcom-bookmarks");
+        if (stored) {
+          setSavedPosts(JSON.parse(stored));
+        }
+      } catch (e) {
+        console.error("Failed to parse bookmarks", e);
+      }
     }
-  }, []);
+    loadBookmarks();
+  }, [currentUser?.id]);
 
   const toggleBookmark = (postId: string) => {
     setSavedPosts((prev) => {
-      const newSaved = prev.includes(postId)
+      const isCurrentlySaved = prev.includes(postId);
+      const newSaved = isCurrentlySaved
         ? prev.filter((id) => id !== postId)
         : [...prev, postId];
+
+      if (isSupabaseConfigured && currentUser?.id) {
+        toggleBookmarkSupabase(currentUser.id, postId, isCurrentlySaved);
+      }
 
       try {
         localStorage.setItem("croxcom-bookmarks", JSON.stringify(newSaved));
@@ -64,3 +83,4 @@ export function useBookmarks() {
   }
   return context;
 }
+
