@@ -1,5 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { mockUsers, type MockUser } from "@/data/mock";
+import {
+  supabase,
+  isSupabaseConfigured,
+  signInWithEmail,
+  signInWithGitHub,
+  signOutSupabase,
+  upsertProfile,
+  fetchProfile,
+} from "@/lib/supabase";
 
 export type OnboardingDetails = {
   preferences: string[];
@@ -14,8 +23,8 @@ interface AuthContextType {
   hasCompletedOnboarding: boolean;
   currentUser: MockUser;
   onboardingDetails?: OnboardingDetails;
-  login: (provider: "email" | "github", email?: string) => void;
-  logout: () => void;
+  login: (provider: "email" | "github", email?: string) => Promise<void> | void;
+  logout: () => Promise<void> | void;
   completeOnboarding: (details: OnboardingDetails) => void;
   updateUser: (user: Partial<MockUser>) => void;
 }
@@ -75,6 +84,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return undefined;
   });
 
+  // Supabase auth state listener
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        setIsAuthenticated(true);
+        const sbUser = session.user;
+        const profile = await fetchProfile(sbUser.id);
+        const name = profile?.name || sbUser.user_metadata?.full_name || sbUser.email?.split("@")[0] || "Developer";
+        const handle = profile?.handle || sbUser.user_metadata?.user_name || (sbUser.email?.split("@")[0] || "user").toLowerCase().replace(/[^a-z0-9_]/g, "_");
+        const avatar = profile?.avatar || sbUser.user_metadata?.avatar_url || currentUser.avatar;
+
+        const updatedUser: MockUser = {
+          ...currentUser,
+          id: sbUser.id,
+          name,
+          handle,
+          avatar,
+        };
+        setCurrentUser(updatedUser);
+        localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(updatedUser));
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
   useEffect(() => {
     try {
       localStorage.setItem(
@@ -86,9 +125,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, hasCompletedOnboarding, onboardingDetails]);
 
-  const login = (provider: "email" | "github", email?: string) => {
+  const login = async (provider: "email" | "github", email?: string) => {
     setIsAuthenticated(true);
-    setHasCompletedOnboarding(false); // trigger onboarding after fresh login
+    setHasCompletedOnboarding(false);
+
+    if (isSupabaseConfigured) {
+      if (provider === "github") {
+        await signInWithGitHub();
+      } else if (email) {
+        await signInWithEmail(email);
+      }
+    }
+
     if (email) {
       const updated = {
         ...currentUser,
@@ -103,7 +151,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    if (isSupabaseConfigured) {
+      await signOutSupabase();
+    }
     setIsAuthenticated(false);
     setHasCompletedOnboarding(false);
     localStorage.removeItem(AUTH_STORAGE_KEY);
@@ -116,6 +167,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const updated = { ...currentUser, role: details.teamRole };
       setCurrentUser(updated);
       localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(updated));
+
+      if (isSupabaseConfigured && currentUser.id) {
+        upsertProfile({
+          id: currentUser.id,
+          name: currentUser.name,
+          handle: currentUser.handle,
+          role: details.teamRole,
+          preferences: details.preferences,
+          tools: details.tools,
+          interests: details.interests,
+          dev_position: details.devPosition,
+        });
+      }
     }
   };
 
@@ -124,6 +188,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setCurrentUser(newProfile);
     try {
       localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(newProfile));
+      if (isSupabaseConfigured && currentUser.id) {
+        upsertProfile({
+          id: currentUser.id,
+          name: newProfile.name,
+          handle: newProfile.handle,
+          bio: newProfile.bio,
+          company: newProfile.company,
+          location: newProfile.location,
+          role: newProfile.role,
+        });
+      }
     } catch {
       /* ignore */
     }
