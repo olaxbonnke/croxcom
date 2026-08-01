@@ -13,8 +13,9 @@ export const Route = createFileRoute("/notifications")({
 
 function NotificationsPage() {
   const [tab, setTab] = useState<"all" | "mentions">("all");
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const [notifications, setNotifications] = useState<typeof mockNotifications>([]);
   const [isLoading, setIsLoading] = useState(true);
+
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 150);

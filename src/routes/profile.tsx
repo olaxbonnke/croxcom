@@ -170,30 +170,11 @@ function CurrentUserProfilePage() {
                   )
                   .map((comment) => <CommentCard key={comment.id} comment={comment} />)
               ) : (
-                <div className="py-6 space-y-4">
-                  <p className="font-mono text-xs text-muted-foreground border-b border-border/40 pb-2">
-                    $ replies --user @{currentUser.handle}
+                <div className="py-12 text-center">
+                  <p className="font-mono text-sm text-muted-foreground">
+                    $ replies --user @{currentUser.handle} --empty
                   </p>
-                  <CommentCard
-                    comment={{
-                      id: "rep-demo-1",
-                      postId: "p1",
-                      author: currentUser,
-                      time: "1h ago",
-                      body: "We optimized latency by switching to vLLM v0.6 paged attention. Great performance overall!",
-                      likes: 12,
-                    }}
-                  />
-                  <CommentCard
-                    comment={{
-                      id: "rep-demo-2",
-                      postId: "p2",
-                      author: currentUser,
-                      time: "3h ago",
-                      body: "Agree on the eval benchmark results. Synthetic data filtering is key here.",
-                      likes: 8,
-                    }}
-                  />
+                  <p className="text-sm text-muted-foreground mt-2">No replies yet.</p>
                 </div>
               )}
             </motion.div>
@@ -207,17 +188,15 @@ function CurrentUserProfilePage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              {posts.slice(1, 3).map((post) => (
-                <div key={post.id} className="relative">
-                  <div className="flex items-center gap-1.5 px-4 pt-2.5 font-mono text-[11px] text-primary font-semibold border-t border-border/40 bg-accent/10">
-                    <Repeat2 className="h-3.5 w-3.5" />
-                    <span>Reposted by @{currentUser.handle}</span>
-                  </div>
-                  <PostCard post={post} />
-                </div>
-              ))}
+              <div className="py-12 text-center">
+                <p className="font-mono text-sm text-muted-foreground">
+                  $ reposts --user @{currentUser.handle} --empty
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">No reposted items yet.</p>
+              </div>
             </motion.div>
           )}
+
         </AnimatePresence>
       </div>
     </AppShell>

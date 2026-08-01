@@ -32,18 +32,29 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const AUTH_STORAGE_KEY = "croxcom-auth-session";
-const USER_PROFILE_KEY = "croxcom-user-profile";
+const DEFAULT_LIVE_USER: MockUser = {
+  id: "user-new",
+  name: "New Developer",
+  handle: "new_developer",
+  avatarColor: "#00ff9f",
+  role: "AI Developer",
+  bio: "",
+  followers: 0,
+  following: 0,
+  posts: 0,
+};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<MockUser>(() => {
     try {
       const stored = localStorage.getItem(USER_PROFILE_KEY);
-      if (stored) return { ...mockUsers[0], ...JSON.parse(stored) };
+      if (stored) return { ...DEFAULT_LIVE_USER, ...JSON.parse(stored) };
     } catch {
       /* ignore */
     }
-    return mockUsers[0];
+    return DEFAULT_LIVE_USER;
   });
+
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     try {
@@ -109,10 +120,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           name,
           handle: uniqueHandle,
           avatar,
+          followers: profile?.followers ?? 0,
+          following: profile?.following ?? 0,
+          posts: profile?.posts ?? 0,
         };
         setCurrentUser(updatedUser);
         localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(updatedUser));
       } else if (event === "SIGNED_OUT") {
+
         setIsAuthenticated(false);
         setHasCompletedOnboarding(false);
         localStorage.removeItem(AUTH_STORAGE_KEY);

@@ -20,18 +20,19 @@ const STORAGE_KEY = "croxcom_communities";
 
 export function CommunityProvider({ children }: { children: ReactNode }) {
   const [joinedCommunityIds, setJoinedCommunityIds] = useState<Set<string>>(() => {
-    if (typeof window === "undefined") return new Set(["c1", "c3"]); // default: rag + agents
+    if (typeof window === "undefined") return new Set();
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        return new Set<string>(parsed.joined || ["c1", "c3"]);
+        return new Set<string>(parsed.joined || []);
       }
     } catch {
       /* ignore storage errors */
     }
-    return new Set(["c1", "c3"]);
+    return new Set();
   });
+
 
   const [createdCommunities, setCreatedCommunities] = useState<MockCommunity[]>(() => {
     if (typeof window === "undefined") return [];
