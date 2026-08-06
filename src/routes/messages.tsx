@@ -15,7 +15,7 @@ export const Route = createFileRoute("/messages")({
 
 function MessagesPage() {
   const { currentUser } = useAuth();
-  const [conversations, setConversations] = useState<MockConversation[]>([]);
+  const [conversations, setConversations] = useState<MockConversation[]>(mockConversations);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showNewModal, setShowNewModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -90,7 +90,6 @@ function MessagesPage() {
       }),
     );
   };
-
 
   const handleStartConversation = (user: MockUser) => {
     const existing = conversations.find((c) => c.participant.handle === user.handle);

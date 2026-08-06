@@ -2,7 +2,8 @@ import { createClient } from "@supabase/supabase-js";
 
 // Read Supabase configuration from environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || "";
+const supabaseAnonKey =
+  import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || "";
 
 // Check if Supabase credentials are provided
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
@@ -74,11 +75,7 @@ export async function signOutSupabase() {
  */
 export async function fetchProfile(userId: string) {
   if (!isSupabaseConfigured) return null;
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", userId)
-    .single();
+  const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
 
   if (error) {
     console.error("Error fetching user profile:", error);
@@ -92,11 +89,7 @@ export async function fetchProfile(userId: string) {
  */
 export async function upsertProfile(profile: Record<string, unknown>) {
   if (!isSupabaseConfigured) return null;
-  const { data, error } = await supabase
-    .from("profiles")
-    .upsert(profile)
-    .select()
-    .single();
+  const { data, error } = await supabase.from("profiles").upsert(profile).select().single();
 
   if (error) {
     console.error("Error upserting profile:", error);
@@ -163,10 +156,7 @@ export async function createPostSupabase(post: {
  */
 export async function fetchBookmarksSupabase(userId: string): Promise<string[]> {
   if (!isSupabaseConfigured) return [];
-  const { data, error } = await supabase
-    .from("bookmarks")
-    .select("post_id")
-    .eq("user_id", userId);
+  const { data, error } = await supabase.from("bookmarks").select("post_id").eq("user_id", userId);
 
   if (error) {
     console.error("Error fetching bookmarks from Supabase:", error);
@@ -188,9 +178,7 @@ export async function toggleBookmarkSupabase(userId: string, postId: string, isS
       .eq("post_id", postId);
     if (error) console.error("Error removing bookmark from Supabase:", error);
   } else {
-    const { error } = await supabase
-      .from("bookmarks")
-      .insert({ user_id: userId, post_id: postId });
+    const { error } = await supabase.from("bookmarks").insert({ user_id: userId, post_id: postId });
     if (error) console.error("Error adding bookmark to Supabase:", error);
   }
 }
@@ -279,20 +267,14 @@ export function subscribeToMessages(userId: string, onPayload: (payload: any) =>
 
   const channel = supabase
     .channel(`public:messages:${userId}`)
-    .on(
-      "postgres_changes",
-      { event: "INSERT", schema: "public", table: "messages" },
-      (payload) => {
-        if (payload.new?.sender_id === userId || payload.new?.receiver_id === userId) {
-          onPayload(payload);
-        }
-      },
-    )
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (payload) => {
+      if (payload.new?.sender_id === userId || payload.new?.receiver_id === userId) {
+        onPayload(payload);
+      }
+    })
     .subscribe();
 
   return () => {
     supabase.removeChannel(channel);
   };
 }
-
-

@@ -6,12 +6,13 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Composer } from "@/components/feed/Composer";
 import { ClientOnly } from "@/components/ClientOnly";
 import { usePosts } from "@/hooks/usePosts";
-import { mockUsers, type PostMedia } from "@/data/mock";
+import { type PostMedia } from "@/data/mock";
+import { useAuth } from "@/lib/AuthContext";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [composerOpen, setComposerOpen] = useState(false);
   const { addPost } = usePosts();
-  const me = mockUsers[0];
+  const { currentUser } = useAuth();
 
   const handlePost = ({
     body,
@@ -38,7 +39,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
     addPost({
       id: "new-" + Date.now(),
-      author: me,
+      author: currentUser,
       time: "Just now",
       body,
       tags,

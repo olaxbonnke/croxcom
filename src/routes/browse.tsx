@@ -1,17 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { z } from "zod";
 import { AppShell } from "@/components/layout/AppShell";
 import { CommunityCard } from "@/components/browse/CommunityCard";
 import { mockCommunities, trending, mockUsers } from "@/data/mock";
 import { Search, X } from "lucide-react";
 
 export const Route = createFileRoute("/browse")({
+  validateSearch: z.object({
+    q: z.string().optional().catch(undefined),
+  }),
   component: BrowsePage,
 });
 
 function BrowsePage() {
-  const [query, setQuery] = useState("");
+  const { q: searchParam } = Route.useSearch();
+  const [query, setQuery] = useState(searchParam ?? "");
   const [followedUserIds, setFollowedUserIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (searchParam !== undefined) {
+      setQuery(searchParam);
+    }
+  }, [searchParam]);
 
   const q = query.trim().toLowerCase();
 

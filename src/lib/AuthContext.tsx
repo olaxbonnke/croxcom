@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useRef } from "react";
 import { mockUsers, type MockUser } from "@/data/mock";
 import {
   supabase,
@@ -33,6 +33,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const AUTH_STORAGE_KEY = "croxcom-auth-session";
+const USER_PROFILE_KEY = "croxcom-user-profile";
 const DEFAULT_LIVE_USER: MockUser = {
   id: "user-new",
   name: "New Developer",
@@ -55,7 +56,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     return DEFAULT_LIVE_USER;
   });
-
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     try {
@@ -96,6 +96,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return undefined;
   });
 
+  const currentUserRef = useRef(currentUser);
+  useEffect(() => {
+    currentUserRef.current = currentUser;
+  }, [currentUser]);
+
   // Supabase auth state listener
   useEffect(() => {
     if (!isSupabaseConfigured) return;
@@ -107,16 +112,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const profile = await fetchProfile(sbUser.id);
         const emailPrefix = sbUser.email?.split("@")[0] || "user";
         // Create unique handle from user email / metadata
-        const uniqueHandle = (
+        const uniqueHandle =
           profile?.handle ||
           sbUser.user_metadata?.user_name ||
-          `${emailPrefix.toLowerCase().replace(/[^a-z0-9_]/g, "_")}_${sbUser.id.slice(0, 4)}`
-        );
-        const name = profile?.name || sbUser.user_metadata?.full_name || emailPrefix || "AI Developer";
-        const avatar = profile?.avatar || sbUser.user_metadata?.avatar_url || currentUser.avatar;
+          `${emailPrefix.toLowerCase().replace(/[^a-z0-9_]/g, "_")}_${sbUser.id.slice(0, 4)}`;
+        const name =
+          profile?.name || sbUser.user_metadata?.full_name || emailPrefix || "AI Developer";
+        const avatar =
+          profile?.avatar || sbUser.user_metadata?.avatar_url || currentUserRef.current.avatar;
 
         const updatedUser: MockUser = {
-          ...currentUser,
+          ...currentUserRef.current,
           id: sbUser.id,
           name,
           handle: uniqueHandle,
@@ -128,7 +134,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setCurrentUser(updatedUser);
         localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(updatedUser));
       } else if (event === "SIGNED_OUT") {
-
         setIsAuthenticated(false);
         setHasCompletedOnboarding(false);
         localStorage.removeItem(AUTH_STORAGE_KEY);
@@ -223,8 +228,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           name: newProfile.name,
           handle: newProfile.handle,
           bio: newProfile.bio,
-          company: newProfile.company,
-          location: newProfile.location,
           role: newProfile.role,
         });
       }

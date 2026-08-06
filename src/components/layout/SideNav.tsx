@@ -14,6 +14,8 @@ import type { ComponentType, SVGProps } from "react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/AuthContext";
+import { useComposerVisibility } from "@/hooks/useComposerVisibility";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type NavItem = { label: string; to: string; icon: ComponentType<SVGProps<SVGSVGElement>> };
 
@@ -37,6 +39,7 @@ export function SideNav({
   onNewPost?: () => void;
 }) {
   const { currentUser } = useAuth();
+  const showComposer = useComposerVisibility();
 
   return (
     <nav className="flex h-full flex-col gap-1 px-3 py-4" aria-label="Primary">
@@ -57,7 +60,7 @@ export function SideNav({
       </ul>
 
       {/* Desktop Add Post Button */}
-      {!onNavigate && (
+      {!onNavigate && showComposer && (
         <button
           type="button"
           onClick={onNewPost}
@@ -67,9 +70,13 @@ export function SideNav({
         </button>
       )}
 
+      <div className="px-3 mb-2 mt-auto">
+        <ThemeToggle />
+      </div>
+
       <Link
         to="/profile"
-        className="mt-auto flex items-center gap-2 rounded-md border border-border/70 bg-card/40 px-3 py-2 hover:bg-accent/30 transition-colors"
+        className="flex items-center gap-2 rounded-md border border-border/70 bg-card/40 px-3 py-2 hover:bg-accent/30 transition-colors"
       >
         <div
           aria-hidden

@@ -1,6 +1,10 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useAuth } from "@/lib/AuthContext";
-import { isSupabaseConfigured, fetchBookmarksSupabase, toggleBookmarkSupabase } from "@/lib/supabase";
+import {
+  isSupabaseConfigured,
+  fetchBookmarksSupabase,
+  toggleBookmarkSupabase,
+} from "@/lib/supabase";
 
 interface BookmarkContextType {
   savedPosts: string[];
@@ -40,9 +44,7 @@ export function BookmarkProvider({ children }: { children: ReactNode }) {
   const toggleBookmark = (postId: string) => {
     setSavedPosts((prev) => {
       const isCurrentlySaved = prev.includes(postId);
-      const newSaved = isCurrentlySaved
-        ? prev.filter((id) => id !== postId)
-        : [...prev, postId];
+      const newSaved = isCurrentlySaved ? prev.filter((id) => id !== postId) : [...prev, postId];
 
       if (isSupabaseConfigured && currentUser?.id) {
         toggleBookmarkSupabase(currentUser.id, postId, isCurrentlySaved);
@@ -83,4 +85,3 @@ export function useBookmarks() {
   }
   return context;
 }
-

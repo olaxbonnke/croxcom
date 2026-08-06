@@ -1,4 +1,5 @@
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
+import { useComposerVisibility } from "@/hooks/useComposerVisibility";
 import { Bell, Home, Library, Menu, MessageSquare, Plus } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -44,16 +45,8 @@ const TABS = [
   { to: "/messages", label: "Messages", icon: MessageSquare },
 ] as const;
 
-// Routes where the floating add-post FAB should be visible
-const FAB_VISIBLE_ROUTES = ["/", "/library", "/browse", "/bookmarks"];
-
 export function MobileTabBar({ onNewPost }: { onNewPost?: () => void }) {
-  const location = useLocation();
-
-  // Show FAB only on home-level screens, not inside posts/profiles/settings/comments
-  const showFab = FAB_VISIBLE_ROUTES.some((route) =>
-    route === "/" ? location.pathname === "/" : location.pathname.startsWith(route),
-  );
+  const showFab = useComposerVisibility();
 
   return (
     <>

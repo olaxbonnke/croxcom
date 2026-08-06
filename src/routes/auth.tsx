@@ -33,14 +33,27 @@ const INTERESTS_LIST = [
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { isAuthenticated, hasCompletedOnboarding, currentUser, login, completeOnboarding, updateUser } = useAuth();
+  const {
+    isAuthenticated,
+    hasCompletedOnboarding,
+    currentUser,
+    login,
+    completeOnboarding,
+    updateUser,
+  } = useAuth();
 
   const [phase, setPhase] = useState<AuthPhase>("loading");
   const [email, setEmail] = useState("");
 
   // Onboarding state
-  const [displayName, setDisplayName] = useState(currentUser?.name || "");
-  const [userHandle, setUserHandle] = useState(currentUser?.handle || "");
+  const [displayName, setDisplayName] = useState(() => {
+    if (currentUser?.name && currentUser.name !== "New Developer") return currentUser.name;
+    return "";
+  });
+  const [userHandle, setUserHandle] = useState(() => {
+    if (currentUser?.handle && currentUser.handle !== "new_developer") return currentUser.handle;
+    return "";
+  });
   const [selectedTools, setSelectedTools] = useState<string[]>(["PyTorch", "vLLM"]);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([
     "Autonomous Agents",
@@ -49,11 +62,15 @@ function AuthPage() {
   const [devPosition, setDevPosition] = useState<"Solo" | "Team">("Team");
   const [teamRole, setTeamRole] = useState("AI Infrastructure Engineer");
 
-  // Keep displayName and userHandle updated from currentUser
+  // Keep displayName and userHandle updated from currentUser only if genuine name
   useEffect(() => {
-    if (currentUser?.name && !displayName) setDisplayName(currentUser.name);
-    if (currentUser?.handle && !userHandle) setUserHandle(currentUser.handle);
-  }, [currentUser]);
+    if (currentUser?.name && currentUser.name !== "New Developer" && !displayName) {
+      setDisplayName(currentUser.name);
+    }
+    if (currentUser?.handle && currentUser.handle !== "new_developer" && !userHandle) {
+      setUserHandle(currentUser.handle);
+    }
+  }, [currentUser, displayName, userHandle]);
 
   // Step 1: Handle loading animation timeline (2s logo + slide out text)
   useEffect(() => {
@@ -64,7 +81,7 @@ function AuthPage() {
         } else if (!hasCompletedOnboarding) {
           setPhase("onboarding");
         } else {
-          navigate({ to: "/" });
+          navigate({ to: "/", replace: true });
         }
       }, 2800);
       return () => clearTimeout(timer);
@@ -107,9 +124,8 @@ function AuthPage() {
       teamRole: devPosition === "Team" ? teamRole : "Solo Builder",
     };
     completeOnboarding(details);
-    navigate({ to: "/" });
+    navigate({ to: "/", replace: true });
   };
-
 
   const toggleItem = (list: string[], setList: (l: string[]) => void, item: string) => {
     if (list.includes(item)) {
@@ -291,46 +307,57 @@ function AuthPage() {
                 <Terminal className="h-4 w-4" />
                 <span>$ croxcom --setup-profile</span>
               </div>
-              <span className="font-mono text-xs text-muted-foreground">Step 2/2</span>
+              <span className="font-mono text-xs text-primary font-semibold">Profile Setup</span>
             </div>
 
             <div className="mb-5">
-              <h2 className="text-lg font-semibold text-foreground">Tell us about your stack</h2>
+              <h2 className="text-lg font-semibold text-foreground">
+                Complete Your Developer Profile
+              </h2>
               <p className="text-xs text-muted-foreground">
-                Personalize your feed and connect with developers building similar tech.
+                Set your public display name, unique handle, and developer stack.
               </p>
             </div>
 
             <form onSubmit={handleOnboardingSubmit} className="space-y-5">
-              {/* Display Name & Unique Handle */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-mono text-xs text-muted-foreground mb-1">
-                    Display Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="e.g. Sarah Chen"
-                    className="w-full rounded-lg border border-border bg-background/80 px-3 py-2 font-mono text-sm text-foreground focus:border-primary focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block font-mono text-xs text-muted-foreground mb-1">
-                    Unique Handle (@username)
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2 font-mono text-sm text-muted-foreground">@</span>
+              {/* Step 1: Display Name & Unique Handle */}
+              <div className="rounded-lg border border-border/80 bg-background/50 p-3.5 space-y-3">
+                <label className="block font-mono text-xs text-primary font-bold uppercase tracking-wider">
+                  1. Your Public Identity
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-mono text-[11px] text-muted-foreground mb-1">
+                      Display Name <span className="text-primary">*</span>
+                    </label>
                     <input
                       type="text"
                       required
-                      value={userHandle}
-                      onChange={(e) => setUserHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
-                      placeholder="sarah_ai"
-                      className="w-full rounded-lg border border-border bg-background/80 pl-7 pr-3 py-2 font-mono text-sm text-foreground focus:border-primary focus:outline-none"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder="e.g. Alex Rivera"
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm text-foreground focus:border-primary focus:outline-none"
                     />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[11px] text-muted-foreground mb-1">
+                      Unique Handle (@username) <span className="text-primary">*</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 font-mono text-sm text-muted-foreground">
+                        @
+                      </span>
+                      <input
+                        type="text"
+                        required
+                        value={userHandle}
+                        onChange={(e) =>
+                          setUserHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))
+                        }
+                        placeholder="alex_rivera"
+                        className="w-full rounded-lg border border-border bg-background pl-7 pr-3 py-2 font-mono text-sm text-foreground focus:border-primary focus:outline-none"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

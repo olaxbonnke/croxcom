@@ -10,6 +10,7 @@ import { useState } from "react";
 import { usePosts } from "@/hooks/usePosts";
 
 import { useCommunities } from "@/lib/CommunityContext";
+import { useAuth } from "@/lib/AuthContext";
 
 export const Route = createFileRoute("/communities/$slug")({
   component: CommunityPage,
@@ -23,6 +24,7 @@ function CommunityPage() {
   const community = allCommunities.find((c) => c.slug === slug || c.id === slug);
   const [activeTab, setActiveTab] = useState<"Posts" | "Members" | "About">("Posts");
   const { posts, addPost } = usePosts();
+  const { currentUser } = useAuth();
   const joined = community ? isMember(community.id) : false;
 
   if (!community) {
@@ -74,7 +76,7 @@ function CommunityPage() {
 
     addPost({
       id: `comm-post-${Date.now()}`,
-      author: mockUsers[0],
+      author: currentUser,
       community,
       time: "Just now",
       body,
@@ -99,7 +101,7 @@ function CommunityPage() {
             members
           </span>
           <span>
-            <span className="text-foreground font-medium">2.1k</span> posts
+            <span className="text-foreground font-medium">{communityPosts.length}</span> posts
           </span>
         </div>
 

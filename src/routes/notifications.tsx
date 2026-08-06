@@ -16,12 +16,10 @@ export const Route = createFileRoute("/notifications")({
 function NotificationsPage() {
   const { currentUser } = useAuth();
   const [tab, setTab] = useState<"all" | "mentions">("all");
-  const [notifications, setNotifications] = useState<typeof mockNotifications>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [notifications, setNotifications] = useState<typeof mockNotifications>(mockNotifications);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 150);
-
     let unsubscribe = () => {};
     if (isSupabaseConfigured && currentUser?.id) {
       unsubscribe = subscribeToNotifications(currentUser.id, (payload) => {
@@ -44,11 +42,9 @@ function NotificationsPage() {
     }
 
     return () => {
-      clearTimeout(timer);
       unsubscribe();
     };
   }, [currentUser]);
-
 
   const filtered =
     tab === "all" ? notifications : notifications.filter((n) => n.kind === "mention");

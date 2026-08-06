@@ -196,11 +196,9 @@ export function RightRail() {
           </ul>
         </section>
 
-
         <p className="px-1 font-mono text-[11px] leading-relaxed text-muted-foreground/70">
           croxcom v0.1 · a community for ai developers
         </p>
-
       </div>
     </aside>
   );

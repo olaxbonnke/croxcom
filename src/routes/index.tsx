@@ -11,7 +11,16 @@ import { usePosts } from "@/hooks/usePosts";
 import { useAuth } from "@/lib/AuthContext";
 import { useCommunities as useCommunityCtx } from "@/lib/CommunityContext";
 import { fetchLiveAINews, DEFAULT_AI_NEWS, type NewsArticle } from "@/lib/news";
-import { TrendingUp, Newspaper, Users, ExternalLink, Sparkles, Plus, X, MessageSquare } from "lucide-react";
+import {
+  TrendingUp,
+  Newspaper,
+  Users,
+  ExternalLink,
+  Sparkles,
+  Plus,
+  X,
+  MessageSquare,
+} from "lucide-react";
 
 const ADS = [
   {
@@ -56,9 +65,9 @@ function FeedPage() {
   // Visitor Auth Routing Guard
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate({ to: "/auth" });
+      navigate({ to: "/auth", replace: true });
     } else if (!hasCompletedOnboarding) {
-      navigate({ to: "/auth" });
+      navigate({ to: "/auth", replace: true });
     }
   }, [isAuthenticated, hasCompletedOnboarding, navigate]);
 
@@ -130,7 +139,6 @@ function FeedPage() {
       }
     });
   }
-
 
   return (
     <AppShell>
@@ -222,7 +230,6 @@ function FeedPage() {
                   );
                 }
 
-
                 if (item.type === "ad") {
                   return (
                     <div
@@ -299,7 +306,6 @@ function FeedPage() {
               )}
             </motion.div>
           )}
-
 
           {/* ── Communities Tab ── */}
           {activeTab === "Communities" && <CommunitiesTab posts={posts} />}

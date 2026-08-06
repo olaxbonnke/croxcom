@@ -63,7 +63,10 @@ async function fetchDevToAINews(): Promise<NewsArticle[]> {
       url: item.url,
       time: formatTimeAgo(item.published_at),
       tag: item.tag_list?.[0] ? `#${item.tag_list[0]}` : "#ai",
-      imageUrl: item.cover_image || item.social_image || AI_IMAGE_FALLBACKS[idx % AI_IMAGE_FALLBACKS.length],
+      imageUrl:
+        item.cover_image ||
+        item.social_image ||
+        AI_IMAGE_FALLBACKS[idx % AI_IMAGE_FALLBACKS.length],
     }));
   } catch (err) {
     console.error("Failed to fetch Dev.to AI news:", err);
@@ -84,7 +87,8 @@ async function fetchHackerNewsAINews(): Promise<NewsArticle[]> {
     return (data.hits || [])
       .filter((hit: any) => hit.title && (hit.url || hit.story_url))
       .map((hit: any, idx: number) => {
-        const articleUrl = hit.url || hit.story_url || `https://news.ycombinator.com/item?id=${hit.objectID}`;
+        const articleUrl =
+          hit.url || hit.story_url || `https://news.ycombinator.com/item?id=${hit.objectID}`;
         return {
           id: `hn-${hit.objectID}`,
           headline: hit.title,
@@ -125,7 +129,10 @@ async function fetchTechCrunchAINews(): Promise<NewsArticle[]> {
         url: item.link,
         time: formatTimeAgo(item.pubDate),
         tag: "#techcrunch",
-        imageUrl: item.thumbnail || item.enclosure?.link || AI_IMAGE_FALLBACKS[idx % AI_IMAGE_FALLBACKS.length],
+        imageUrl:
+          item.thumbnail ||
+          item.enclosure?.link ||
+          AI_IMAGE_FALLBACKS[idx % AI_IMAGE_FALLBACKS.length],
       };
     });
   } catch (err) {

@@ -196,7 +196,6 @@ function CurrentUserProfilePage() {
               </div>
             </motion.div>
           )}
-
         </AnimatePresence>
       </div>
     </AppShell>

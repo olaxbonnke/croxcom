@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Heart, MessageCircle, CornerDownRight } from "lucide-react";
-import { mockUsers, type MockComment } from "@/data/mock";
+import { type MockComment } from "@/data/mock";
 import { cn } from "@/lib/utils";
 import { extractUrl, LinkPreviewCard } from "./LinkPreviewCard";
-
+import { useAuth } from "@/lib/AuthContext";
 import { Link } from "@tanstack/react-router";
 
 interface CommentCardProps {
@@ -13,6 +13,7 @@ interface CommentCardProps {
 }
 
 export function CommentCard({ comment, depth = 0, onAddReply }: CommentCardProps) {
+  const { currentUser } = useAuth();
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(comment.likes);
   const [showReplyForm, setShowReplyForm] = useState(false);
@@ -37,7 +38,7 @@ export function CommentCard({ comment, depth = 0, onAddReply }: CommentCardProps
     const newReply: MockComment = {
       id: `reply-${Date.now()}`,
       postId: comment.postId,
-      author: mockUsers[0], // current user Ada
+      author: currentUser,
       time: "Just now",
       body: replyText.trim(),
       likes: 0,

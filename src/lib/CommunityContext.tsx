@@ -33,7 +33,6 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
     return new Set();
   });
 
-
   const [createdCommunities, setCreatedCommunities] = useState<MockCommunity[]>(() => {
     if (typeof window === "undefined") return [];
     try {

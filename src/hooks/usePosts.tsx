@@ -4,9 +4,14 @@
  * Provides global post state, comments, likes, reposts, edits, and deletions.
  */
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
-import { type MockPost, type MockComment } from "@/data/mock";
+import { type MockPost, type MockComment, mockPosts } from "@/data/mock";
 import { useAuth } from "@/lib/AuthContext";
-import { isSupabaseConfigured, fetchPostsSupabase, createPostSupabase, subscribeToPosts } from "@/lib/supabase";
+import {
+  isSupabaseConfigured,
+  fetchPostsSupabase,
+  createPostSupabase,
+  subscribeToPosts,
+} from "@/lib/supabase";
 
 type PostContextType = {
   posts: MockPost[];
@@ -31,10 +36,13 @@ type PostContextType = {
 
 const PostContext = createContext<PostContextType | undefined>(undefined);
 
-
 export function PostProvider({ children }: { children: ReactNode }) {
   const { currentUser } = useAuth();
-  const [posts, setPosts] = useState<MockPost[]>([]);
+  const [posts, setPosts] = useState<MockPost[]>(() => {
+    if (isSupabaseConfigured) return [];
+    // Dynamically import is not possible in useState, so we import at module level
+    return mockPosts;
+  });
   const [comments, setComments] = useState<MockComment[]>([]);
   const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
   const [repostedPostIds, setRepostedPostIds] = useState<Set<string>>(new Set());
@@ -55,10 +63,16 @@ export function PostProvider({ children }: { children: ReactNode }) {
                 id: sp.author_id,
                 name: profile.name || "AI Developer",
                 handle: profile.handle || "developer",
-                avatar: profile.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+                avatar:
+                  profile.avatar ||
+                  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+                avatarColor: profile.avatarColor || "#00ff9f",
                 role: profile.role || "AI Developer",
               },
-              time: new Date(sp.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+              time: new Date(sp.created_at).toLocaleDateString(undefined, {
+                month: "short",
+                day: "numeric",
+              }),
               body: sp.content,
               tags: sp.tags || [],
               stats: {
@@ -81,15 +95,21 @@ export function PostProvider({ children }: { children: ReactNode }) {
           const sp = payload.new;
           setPosts((prev) => {
             if (prev.some((p) => p.id === sp.id)) return prev;
+            const isMe = currentUser && sp.author_id === currentUser.id;
             const newMapped: MockPost = {
               id: sp.id,
-              author: {
-                id: sp.author_id,
-                name: "AI Developer",
-                handle: "developer",
-                avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-                role: "AI Developer",
-              },
+              author: isMe
+                ? currentUser
+                : {
+                    id: sp.author_id,
+                    name: sp.profiles?.name || "AI Developer",
+                    handle: sp.profiles?.handle || "developer",
+                    avatar:
+                      sp.profiles?.avatar ||
+                      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+                    avatarColor: "#00ff9f",
+                    role: sp.profiles?.role || "AI Developer",
+                  },
               time: "Just now",
               body: sp.content,
               tags: sp.tags || [],
@@ -102,12 +122,16 @@ export function PostProvider({ children }: { children: ReactNode }) {
     }
 
     return () => unsubscribe();
-  }, []);
-
+  }, [currentUser]);
 
   const addPost = useCallback(
     async (post: MockPost) => {
-      setPosts((prev) => [post, ...prev]);
+      const postWithCurrentUser = {
+        ...post,
+        author: currentUser,
+      };
+
+      setPosts((prev) => [postWithCurrentUser, ...prev]);
 
       if (isSupabaseConfigured && currentUser?.id) {
         await createPostSupabase({
@@ -118,9 +142,8 @@ export function PostProvider({ children }: { children: ReactNode }) {
         });
       }
     },
-    [currentUser?.id],
+    [currentUser],
   );
-
 
   const deletePost = useCallback((id: string) => {
     setPosts((prev) => prev.filter((p) => p.id !== id));
@@ -138,7 +161,7 @@ export function PostProvider({ children }: { children: ReactNode }) {
   const addComment = useCallback(
     (postId: string, body: string) => {
       if (!body.trim()) return;
-      const authorToUse = currentUser || mockUsers[0];
+      const authorToUse = currentUser;
       const newComment: MockComment = {
         id: `comm-${Date.now()}`,
         postId,
@@ -161,7 +184,7 @@ export function PostProvider({ children }: { children: ReactNode }) {
   const addReply = useCallback(
     (postId: string, parentCommentId: string, body: string) => {
       if (!body.trim()) return;
-      const authorToUse = currentUser || mockUsers[0];
+      const authorToUse = currentUser;
       const newReply: MockComment = {
         id: `reply-${Date.now()}`,
         postId,
@@ -274,12 +297,16 @@ export function PostProvider({ children }: { children: ReactNode }) {
     .map((p) => {
       if (
         currentUser &&
-        (p.author.id === currentUser.id || p.author.handle === currentUser.handle)
+        (p.author.id === currentUser.id ||
+          p.author.handle === currentUser.handle ||
+          p.id.startsWith("local-") ||
+          p.id.startsWith("new-"))
       ) {
         return {
           ...p,
           author: {
             ...p.author,
+            id: currentUser.id,
             name: currentUser.name,
             handle: currentUser.handle,
             avatar: currentUser.avatar,
