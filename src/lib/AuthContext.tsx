@@ -28,6 +28,7 @@ interface AuthContextType {
   logout: () => Promise<void> | void;
   completeOnboarding: (details: OnboardingDetails) => void;
   updateUser: (user: Partial<MockUser>) => void;
+  isRealUser: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -236,6 +237,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const isRealUser = isAuthenticated && currentUser.id !== "user-new" && currentUser.id !== "demo-user-id";
+
   return (
     <AuthContext.Provider
       value={{
@@ -247,6 +250,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
         completeOnboarding,
         updateUser,
+        isRealUser,
       }}
     >
       {children}

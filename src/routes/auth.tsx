@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth, type OnboardingDetails } from "@/lib/AuthContext";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ArrowRight, Check, Github, Mail, Sparkles, Terminal, Users, User } from "lucide-react";
@@ -10,7 +11,7 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-type AuthPhase = "loading" | "login" | "onboarding";
+type AuthPhase = "loading" | "login" | "check-inbox" | "awaiting-redirect" | "onboarding";
 
 const TOOLS_LIST = [
   "PyTorch",
@@ -88,22 +89,43 @@ function AuthPage() {
     }
   }, [phase, isAuthenticated, hasCompletedOnboarding, navigate]);
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
-    login("email", email.trim());
-    setPhase("onboarding");
+    await login("email", email.trim());
+    // If Supabase is not configured, mock mode advances directly to onboarding
+    if (!isSupabaseConfigured) {
+      setPhase("onboarding");
+    } else {
+      // Real Supabase: show "check your inbox" screen, wait for magic link
+      setPhase("check-inbox");
+    }
   };
 
-  const handleGithubLogin = () => {
-    login("github", "github_dev@croxcom.ai");
-    setPhase("onboarding");
+  const handleGithubLogin = async () => {
+    await login("github");
+    if (!isSupabaseConfigured) {
+      setPhase("onboarding");
+    } else {
+      setPhase("awaiting-redirect");
+    }
   };
 
-  const handleGoogleLogin = () => {
-    login("google", "google_dev@croxcom.ai");
-    setPhase("onboarding");
+  const handleGoogleLogin = async () => {
+    await login("google");
+    if (!isSupabaseConfigured) {
+      setPhase("onboarding");
+    } else {
+      setPhase("awaiting-redirect");
+    }
   };
+
+  // When real auth completes (OAuth redirect return or magic link), transition to onboarding
+  useEffect(() => {
+    if (isAuthenticated && !hasCompletedOnboarding && (phase === "check-inbox" || phase === "awaiting-redirect" || phase === "login")) {
+      setPhase("onboarding");
+    }
+  }, [isAuthenticated, hasCompletedOnboarding, phase]);
 
   const handleOnboardingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -289,6 +311,54 @@ function AuthPage() {
             <p className="mt-6 text-center font-mono text-xs text-muted-foreground/70">
               By signing in, you agree to our Code of Conduct & Privacy rules.
             </p>
+          </motion.div>
+        )}
+
+        {/* ── PHASE: Check Inbox Screen ── */}
+        {phase === "check-inbox" && (
+          <motion.div
+            key="check-inbox"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex min-h-screen items-center justify-center bg-background p-4"
+          >
+            <div className="w-full max-w-md space-y-6 text-center z-10">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                <Mail className="h-8 w-8 text-primary" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground">Check your inbox</h2>
+              <p className="text-muted-foreground">
+                We sent a magic link to <span className="font-medium text-foreground">{email}</span>.
+                Click the link in your email to sign in.
+              </p>
+              <button
+                type="button"
+                onClick={() => setPhase("login")}
+                className="text-sm text-primary hover:underline cursor-pointer"
+              >
+                ← Back to login
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── PHASE: Awaiting Redirect Screen ── */}
+        {phase === "awaiting-redirect" && (
+          <motion.div
+            key="awaiting-redirect"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex min-h-screen items-center justify-center bg-background p-4"
+          >
+            <div className="w-full max-w-md space-y-6 text-center z-10">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 animate-pulse">
+                <Sparkles className="h-8 w-8 text-primary" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground">Redirecting...</h2>
+              <p className="text-muted-foreground">Taking you to the authentication provider.</p>
+            </div>
           </motion.div>
         )}
 
