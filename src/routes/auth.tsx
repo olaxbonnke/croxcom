@@ -111,12 +111,12 @@ function AuthPage() {
     }
   };
 
-  // When real auth completes (OAuth redirect return or magic link), transition to onboarding
+  // When auth completes (OAuth redirect return, magic link, or mock login), transition to onboarding if not yet completed
   useEffect(() => {
-    if (isAuthenticated && !hasCompletedOnboarding && (phase === "check-inbox" || phase === "awaiting-redirect")) {
+    if (isAuthenticated && !hasCompletedOnboarding) {
       setPhase("onboarding");
     }
-  }, [isAuthenticated, hasCompletedOnboarding, phase]);
+  }, [isAuthenticated, hasCompletedOnboarding]);
 
   const handleOnboardingSubmit = (e: React.FormEvent) => {
     e.preventDefault();

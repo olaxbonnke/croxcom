@@ -134,6 +134,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
         setCurrentUser(updatedUser);
         localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(updatedUser));
+
+        // If user already has a saved profile handle in Supabase, mark onboarding as completed
+        if (profile?.handle) {
+          setHasCompletedOnboarding(true);
+        }
       } else if (event === "SIGNED_OUT") {
         setIsAuthenticated(false);
         setHasCompletedOnboarding(false);
