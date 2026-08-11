@@ -43,12 +43,7 @@ function AuthPage() {
     updateUser,
   } = useAuth();
 
-  const [phase, setPhase] = useState<AuthPhase>(() => {
-    if (isAuthenticated && !hasCompletedOnboarding) {
-      return "onboarding";
-    }
-    return "login";
-  });
+  const [phase, setPhase] = useState<AuthPhase>("login");
   const [email, setEmail] = useState("");
 
   // Onboarding state
@@ -373,13 +368,7 @@ function AuthPage() {
                 <Terminal className="h-4 w-4" />
                 <span>$ croxcom --setup-profile</span>
               </div>
-              <button
-                type="button"
-                onClick={() => setPhase("login")}
-                className="font-mono text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-              >
-                ← Back to Sign In
-              </button>
+              <span className="font-mono text-xs text-primary font-semibold">Profile Setup</span>
             </div>
 
             <div className="mb-5">
