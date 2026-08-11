@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { PostCard } from "@/components/feed/PostCard";
-import { mockPosts } from "@/data/mock";
 import {
   Terminal,
   Home,
@@ -17,6 +16,20 @@ import {
   Compass,
   Sparkles,
 } from "lucide-react";
+
+const samplePost = {
+  id: "ds-sample-1",
+  author: {
+    id: "ds-dev",
+    name: "AI Developer",
+    handle: "ai_dev",
+    avatarColor: "#00ff9f",
+    role: "Systems Engineer",
+  },
+  time: "2h ago",
+  body: "Testing design system PostCard specimen component.",
+  stats: { comments: 5, reposts: 2, likes: 12 },
+};
 
 export const Route = createFileRoute("/design-system")({
   component: DesignSystemPage,
@@ -141,7 +154,7 @@ function DesignSystemPage() {
             PostCard Specimen
           </h2>
           <div className="max-w-xl">
-            <PostCard post={mockPosts[1]} />
+            <PostCard post={samplePost} />
           </div>
         </section>
 

@@ -13,8 +13,8 @@ export const Route = createFileRoute("/messages/$conversationId")({
 function MessageThreadPage() {
   const { conversationId } = Route.useParams();
 
-  const [conversations, setConversations] = useState(() =>
-    mockConversations.map((c) => (c.id === conversationId ? { ...c, unread: 0 } : c)),
+  const [conversations, setConversations] = useState<typeof mockConversations>(() =>
+    (mockConversations || []).map((c) => (c.id === conversationId ? { ...c, unread: 0 } : c)),
   );
 
   const activeConv = conversations.find((c) => c.id === conversationId);

@@ -13,7 +13,7 @@ import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { PostCard } from "@/components/feed/PostCard";
 import { CommentCard } from "@/components/feed/CommentCard";
 import { GallerySection } from "@/components/profile/GallerySection";
-import { mockUsers, mockComments } from "@/data/mock";
+import { mockComments } from "@/data/mock";
 import { ArrowLeft, Repeat2 } from "lucide-react";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";

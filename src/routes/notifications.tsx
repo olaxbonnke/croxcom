@@ -16,7 +16,7 @@ export const Route = createFileRoute("/notifications")({
 function NotificationsPage() {
   const { currentUser } = useAuth();
   const [tab, setTab] = useState<"all" | "mentions">("all");
-  const [notifications, setNotifications] = useState<typeof mockNotifications>(mockNotifications);
+  const [notifications, setNotifications] = useState<typeof mockNotifications>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
