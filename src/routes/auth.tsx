@@ -43,7 +43,12 @@ function AuthPage() {
     updateUser,
   } = useAuth();
 
-  const [phase, setPhase] = useState<AuthPhase>("loading");
+  const [phase, setPhase] = useState<AuthPhase>(() => {
+    if (isAuthenticated && !hasCompletedOnboarding) {
+      return "onboarding";
+    }
+    return "login";
+  });
   const [email, setEmail] = useState("");
 
   // Onboarding state
@@ -73,21 +78,12 @@ function AuthPage() {
     }
   }, [currentUser, displayName, userHandle]);
 
-  // Step 1: Handle loading animation timeline (2s logo + slide out text)
+  // If already authenticated AND completed onboarding, redirect to root feed
   useEffect(() => {
-    if (phase === "loading") {
-      const timer = setTimeout(() => {
-        if (!isAuthenticated) {
-          setPhase("login");
-        } else if (!hasCompletedOnboarding) {
-          setPhase("onboarding");
-        } else {
-          navigate({ to: "/", replace: true });
-        }
-      }, 2800);
-      return () => clearTimeout(timer);
+    if (isAuthenticated && hasCompletedOnboarding) {
+      navigate({ to: "/", replace: true });
     }
-  }, [phase, isAuthenticated, hasCompletedOnboarding, navigate]);
+  }, [isAuthenticated, hasCompletedOnboarding, navigate]);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,7 +118,7 @@ function AuthPage() {
 
   // When real auth completes (OAuth redirect return or magic link), transition to onboarding
   useEffect(() => {
-    if (isAuthenticated && !hasCompletedOnboarding && (phase === "check-inbox" || phase === "awaiting-redirect" || phase === "login")) {
+    if (isAuthenticated && !hasCompletedOnboarding && (phase === "check-inbox" || phase === "awaiting-redirect")) {
       setPhase("onboarding");
     }
   }, [isAuthenticated, hasCompletedOnboarding, phase]);
@@ -377,7 +373,13 @@ function AuthPage() {
                 <Terminal className="h-4 w-4" />
                 <span>$ croxcom --setup-profile</span>
               </div>
-              <span className="font-mono text-xs text-primary font-semibold">Profile Setup</span>
+              <button
+                type="button"
+                onClick={() => setPhase("login")}
+                className="font-mono text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+              >
+                ← Back to Sign In
+              </button>
             </div>
 
             <div className="mb-5">
