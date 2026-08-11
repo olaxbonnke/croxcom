@@ -494,3 +494,25 @@ create policy "Users can delete their own post images" on storage.objects
   for delete using (
     bucket_id = 'post-images' and (storage.foldername(name))[1] = auth.uid()::text
   );
+
+-- ============================================================================
+-- PERFORMANCE INDEXES & FULL-TEXT SEARCH (SCALE READINESS)
+-- ============================================================================
+
+-- Foreign key & recency performance indexes
+create index if not exists idx_posts_author_id on public.posts(author_id);
+create index if not exists idx_posts_created_at on public.posts(created_at desc);
+create index if not exists idx_comments_post_id on public.comments(post_id);
+create index if not exists idx_comments_author_id on public.comments(author_id);
+create index if not exists idx_bookmarks_user_id on public.bookmarks(user_id);
+create index if not exists idx_bookmarks_post_id on public.bookmarks(post_id);
+create index if not exists idx_likes_post_id on public.likes(post_id);
+create index if not exists idx_community_members_user_id on public.community_members(user_id);
+create index if not exists idx_notifications_recipient_read on public.notifications(recipient_id, is_read);
+create index if not exists idx_messages_conversation_created on public.messages(conversation_id, created_at desc);
+
+-- Full-Text Search tsvector column and GIN index for posts
+alter table public.posts add column if not exists search_vector tsvector
+  generated always as (to_tsvector('english', coalesce(title, '') || ' ' || coalesce(content, ''))) stored;
+create index if not exists idx_posts_search on public.posts using gin(search_vector);
+

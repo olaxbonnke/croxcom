@@ -99,14 +99,17 @@ export async function upsertProfile(profile: Record<string, unknown>) {
 }
 
 /**
- * Fetch Posts from Supabase
+ * Fetch Posts from Supabase (with pagination)
  */
-export async function fetchPostsSupabase() {
+export async function fetchPostsSupabase(page = 0, pageSize = 20) {
   if (!isSupabaseConfigured) return [];
+  const from = page * pageSize;
+  const to = from + pageSize - 1;
   const { data, error } = await supabase
     .from("posts")
     .select("*, profiles(*)")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range(from, to);
 
   if (error) {
     console.error("Error fetching posts from Supabase:", error);

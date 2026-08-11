@@ -136,6 +136,7 @@ import { PostProvider } from "@/hooks/usePosts";
 import { AuthProvider } from "@/lib/AuthContext";
 import { LibraryProvider } from "@/lib/LibraryContext";
 import { CommunityProvider } from "@/lib/CommunityContext";
+import { Toaster } from "@/components/ui/sonner";
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
@@ -148,6 +149,7 @@ function RootComponent() {
             <PostProvider>
               <BookmarkProvider>
                 <Outlet />
+                <Toaster />
               </BookmarkProvider>
             </PostProvider>
           </LibraryProvider>
