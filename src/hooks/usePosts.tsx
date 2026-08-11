@@ -12,6 +12,7 @@ import {
   createPostSupabase,
   subscribeToPosts,
 } from "@/lib/supabase";
+import { SHOW_DEMO_DATA } from "@/lib/config";
 
 type PostContextType = {
   posts: MockPost[];
@@ -39,8 +40,7 @@ const PostContext = createContext<PostContextType | undefined>(undefined);
 export function PostProvider({ children }: { children: ReactNode }) {
   const { currentUser } = useAuth();
   const [posts, setPosts] = useState<MockPost[]>(() => {
-    if (isSupabaseConfigured) return [];
-    // Dynamically import is not possible in useState, so we import at module level
+    if (isSupabaseConfigured || !SHOW_DEMO_DATA) return [];
     return mockPosts;
   });
   const [comments, setComments] = useState<MockComment[]>([]);

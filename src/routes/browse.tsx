@@ -6,6 +6,8 @@ import { CommunityCard } from "@/components/browse/CommunityCard";
 import { mockCommunities, trending, mockUsers } from "@/data/mock";
 import { Search, X } from "lucide-react";
 
+import { SHOW_DEMO_DATA } from "@/lib/config";
+
 export const Route = createFileRoute("/browse")({
   validateSearch: z.object({
     q: z.string().optional().catch(undefined),
@@ -35,14 +37,16 @@ function BrowsePage() {
 
   const filteredTrending = trending.filter((t) => t.topic.toLowerCase().includes(q));
 
-  const filteredPeople = mockUsers
-    .slice(1)
-    .filter(
-      (u) =>
-        u.name.toLowerCase().includes(q) ||
-        u.handle.toLowerCase().includes(q) ||
-        u.role?.toLowerCase().includes(q),
-    );
+  const filteredPeople = SHOW_DEMO_DATA
+    ? mockUsers
+        .slice(1)
+        .filter(
+          (u) =>
+            u.name.toLowerCase().includes(q) ||
+            u.handle.toLowerCase().includes(q) ||
+            u.role?.toLowerCase().includes(q),
+        )
+    : [];
 
   const toggleFollow = (id: string) => {
     setFollowedUserIds((prev) => {

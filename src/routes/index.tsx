@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AppShell } from "@/components/layout/AppShell";
@@ -6,6 +6,7 @@ import { TopBar } from "@/components/layout/TopBar";
 import { Composer } from "@/components/feed/Composer";
 import { PostCard } from "@/components/feed/PostCard";
 import { FeedSkeleton } from "@/components/feed/Skeleton";
+import { LandingPage } from "@/components/landing/LandingPage";
 import { mockCommunities, type PostMedia } from "@/data/mock";
 import { usePosts } from "@/hooks/usePosts";
 import { useAuth } from "@/lib/AuthContext";
@@ -40,12 +41,21 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [{ title: "CroxCom — AI Developer Community" }],
   }),
-  component: FeedPage,
+  component: RootRoute,
 });
 
+function RootRoute() {
+  const { isAuthenticated, hasCompletedOnboarding } = useAuth();
+
+  if (!isAuthenticated || !hasCompletedOnboarding) {
+    return <LandingPage />;
+  }
+
+  return <FeedPage />;
+}
+
 function FeedPage() {
-  const navigate = useNavigate();
-  const { isAuthenticated, hasCompletedOnboarding, currentUser } = useAuth();
+  const { currentUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"Trend" | "Following" | "Communities">("Trend");
   const { posts, addPost } = usePosts();
@@ -61,15 +71,6 @@ function FeedPage() {
     }
     loadNews();
   }, []);
-
-  // Visitor Auth Routing Guard
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate({ to: "/auth", replace: true });
-    } else if (!hasCompletedOnboarding) {
-      navigate({ to: "/auth", replace: true });
-    }
-  }, [isAuthenticated, hasCompletedOnboarding, navigate]);
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 250);

@@ -5,6 +5,8 @@ import { Search, X, User, MessageSquare, Compass, ExternalLink, Newspaper } from
 import { usePosts } from "@/hooks/usePosts";
 import { fetchLiveAINews, DEFAULT_AI_NEWS, type NewsArticle } from "@/lib/news";
 
+import { SHOW_DEMO_DATA } from "@/lib/config";
+
 export function RightRail() {
   const navigate = useNavigate();
   const { posts } = usePosts();
@@ -22,13 +24,14 @@ export function RightRail() {
     loadLiveNews();
   }, []);
 
-  const matchedUsers = query.trim()
-    ? mockUsers.filter(
-        (u) =>
-          u.name.toLowerCase().includes(query.toLowerCase()) ||
-          u.handle.toLowerCase().includes(query.toLowerCase()),
-      )
-    : [];
+  const matchedUsers =
+    query.trim() && SHOW_DEMO_DATA
+      ? mockUsers.filter(
+          (u) =>
+            u.name.toLowerCase().includes(query.toLowerCase()) ||
+            u.handle.toLowerCase().includes(query.toLowerCase()),
+        )
+      : [];
 
   const matchedPosts = query.trim()
     ? posts

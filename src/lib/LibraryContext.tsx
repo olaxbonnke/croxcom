@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { mockUsers, type MockUser } from "@/data/mock";
+import { SHOW_DEMO_DATA } from "@/lib/config";
 
 export type LibraryItem = {
   id: string;
@@ -13,7 +14,7 @@ export type LibraryItem = {
   likes: number;
 };
 
-export const INITIAL_LIBRARY_ITEMS: LibraryItem[] = [
+export const INITIAL_LIBRARY_ITEMS: LibraryItem[] = SHOW_DEMO_DATA ? [
   {
     id: "lib-1",
     title: "Cyberpunk Terminal Dashboard",
@@ -92,7 +93,7 @@ export const INITIAL_LIBRARY_ITEMS: LibraryItem[] = [
     tags: ["GPU", "Infrastructure", "Hardware", "Cluster"],
     likes: 310,
   },
-];
+] : [];
 
 const SAVED_ITEMS_KEY = "croxcom-saved-library-ids";
 

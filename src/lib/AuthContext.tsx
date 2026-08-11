@@ -159,7 +159,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [isAuthenticated, hasCompletedOnboarding, onboardingDetails]);
 
   const login = async (provider: "email" | "github" | "google", email?: string) => {
-    setIsAuthenticated(true);
     setHasCompletedOnboarding(false);
 
     if (isSupabaseConfigured) {
@@ -170,19 +169,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else if (email) {
         await signInWithEmail(email);
       }
-    }
-
-    if (email) {
-      const updated = {
-        ...currentUser,
-        name: email.split("@")[0],
-        handle: email
-          .split("@")[0]
-          .toLowerCase()
-          .replace(/[^a-z0-9_]/g, "_"),
-      };
-      setCurrentUser(updated);
-      localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(updated));
+    } else {
+      // Mock mode fallback when Supabase is not configured
+      setIsAuthenticated(true);
+      if (email) {
+        const updated = {
+          ...currentUser,
+          name: email.split("@")[0],
+          handle: email
+            .split("@")[0]
+            .toLowerCase()
+            .replace(/[^a-z0-9_]/g, "_"),
+        };
+        setCurrentUser(updated);
+        localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(updated));
+      }
     }
   };
 

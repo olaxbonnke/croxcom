@@ -4,6 +4,7 @@ import { mockUsers, type MockUser } from "@/data/mock";
 import { X, Check, Upload, Image as ImageIcon, Camera, User } from "lucide-react";
 import { usePosts } from "@/hooks/usePosts";
 import { useAuth } from "@/lib/AuthContext";
+import { SHOW_DEMO_DATA } from "@/lib/config";
 
 interface ProfileHeaderProps {
   user: MockUser;
@@ -114,7 +115,7 @@ export function ProfileHeader({
     .toUpperCase();
 
   // Related users for followers/following list
-  const sampleUsersList = mockUsers.filter((u) => u.handle !== user.handle);
+  const sampleUsersList = SHOW_DEMO_DATA ? mockUsers.filter((u) => u.handle !== user.handle) : [];
 
   return (
     <div className="w-full">

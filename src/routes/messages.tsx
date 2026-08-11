@@ -8,6 +8,7 @@ import { mockConversations, mockUsers, type MockUser, type MockConversation } fr
 import { Search, X, MessageSquarePlus } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { subscribeToMessages, sendMessageSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { SHOW_DEMO_DATA } from "@/lib/config";
 
 export const Route = createFileRoute("/messages")({
   component: MessagesPage,
@@ -111,15 +112,17 @@ function MessagesPage() {
     setSearchQuery("");
   };
 
-  const filteredUsers = mockUsers.slice(1).filter((u) => {
-    const q = searchQuery.toLowerCase().trim();
-    if (!q) return true;
-    return (
-      u.name.toLowerCase().includes(q) ||
-      u.handle.toLowerCase().includes(q) ||
-      u.role?.toLowerCase().includes(q)
-    );
-  });
+  const filteredUsers = SHOW_DEMO_DATA
+    ? mockUsers.slice(1).filter((u) => {
+        const q = searchQuery.toLowerCase().trim();
+        if (!q) return true;
+        return (
+          u.name.toLowerCase().includes(q) ||
+          u.handle.toLowerCase().includes(q) ||
+          u.role?.toLowerCase().includes(q)
+        );
+      })
+    : [];
 
   return (
     <AppShell>

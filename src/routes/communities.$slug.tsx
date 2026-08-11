@@ -11,6 +11,7 @@ import { usePosts } from "@/hooks/usePosts";
 
 import { useCommunities } from "@/lib/CommunityContext";
 import { useAuth } from "@/lib/AuthContext";
+import { SHOW_DEMO_DATA } from "@/lib/config";
 
 export const Route = createFileRoute("/communities/$slug")({
   component: CommunityPage,
@@ -191,7 +192,7 @@ function CommunityPage() {
 
         {activeTab === "Members" && (
           <div className="flex gap-3 px-4 py-4 flex-wrap">
-            {mockUsers.map((user) => (
+            {(SHOW_DEMO_DATA ? mockUsers : []).map((user) => (
               <Link
                 key={user.id}
                 to="/profile/$handle"

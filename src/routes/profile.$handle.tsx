@@ -9,6 +9,7 @@ import { ArrowLeft, Repeat2 } from "lucide-react";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePosts } from "@/hooks/usePosts";
+import { SHOW_DEMO_DATA } from "@/lib/config";
 
 export const Route = createFileRoute("/profile/$handle")({
   component: UserProfilePage,
@@ -27,7 +28,7 @@ export function UserProfileView({ handle: propHandle }: { handle?: string }) {
   const navigate = useNavigate();
 
   const handle = propHandle || (params as Record<string, string>)?.handle;
-  const user = mockUsers.find((u) => u.handle === handle || u.id === handle);
+  const user = SHOW_DEMO_DATA ? mockUsers.find((u) => u.handle === handle || u.id === handle) : undefined;
   const { posts } = usePosts();
   const userPosts = user
     ? posts.filter((p) => p.author.id === user.id || p.author.handle === user.handle)
