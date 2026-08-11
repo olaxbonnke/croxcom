@@ -111,12 +111,20 @@ function AuthPage() {
     }
   };
 
-  // When auth completes (OAuth redirect return, magic link, or mock login), transition to onboarding if not yet completed
+  // Transition to onboarding ONLY when returning from an auth callback (OAuth/magic link) or after active login submission
   useEffect(() => {
-    if (isAuthenticated && !hasCompletedOnboarding) {
+    const isCallback =
+      typeof window !== "undefined" &&
+      (window.location.hash.includes("access_token") || window.location.search.includes("code"));
+
+    if (
+      isAuthenticated &&
+      !hasCompletedOnboarding &&
+      (isCallback || phase === "check-inbox" || phase === "awaiting-redirect")
+    ) {
       setPhase("onboarding");
     }
-  }, [isAuthenticated, hasCompletedOnboarding]);
+  }, [isAuthenticated, hasCompletedOnboarding, phase]);
 
   const handleOnboardingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
