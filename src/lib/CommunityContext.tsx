@@ -1,5 +1,13 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { mockCommunities, type MockCommunity } from "@/data/mock";
+import { useAuth } from "@/lib/AuthContext";
+import {
+  isSupabaseConfigured,
+  fetchCommunitiesSupabase,
+  joinCommunitySupabase,
+  leaveCommunitySupabase,
+  createCommunitySupabase,
+} from "@/lib/supabase";
 
 interface CommunityContextValue {
   joinedCommunityIds: Set<string>;
@@ -47,6 +55,35 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
     return [];
   });
 
+  const { currentUser } = useAuth();
+
+  // Sync with Supabase on mount
+  useEffect(() => {
+    async function loadFromSupabase() {
+      if (!isSupabaseConfigured) return;
+      const sbCommunities = await fetchCommunitiesSupabase();
+      if (sbCommunities.length > 0) {
+        // Merge Supabase communities as available communities
+        const sbMapped: MockCommunity[] = sbCommunities.map((c: Record<string, unknown>) => ({
+          id: c.id as string,
+          slug: c.slug as string,
+          name: c.name as string,
+          members: ((c.community_members as { count: number }[])?.[0]?.count) || 0,
+          description: (c.description as string) || "",
+          tags: (c.tags as string[]) || [],
+          isPublic: c.is_public as boolean,
+        }));
+        // Merge with local created communities, avoiding duplicates
+        setCreatedCommunities((prev) => {
+          const existingIds = new Set(sbMapped.map((c) => c.id));
+          const localOnly = prev.filter((c) => !existingIds.has(c.id));
+          return [...sbMapped, ...localOnly];
+        });
+      }
+    }
+    loadFromSupabase();
+  }, []);
+
   // Persist to localStorage
   useEffect(() => {
     try {
@@ -68,6 +105,9 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
       next.add(id);
       return next;
     });
+    if (isSupabaseConfigured && currentUser?.id) {
+      joinCommunitySupabase(currentUser.id, id);
+    }
   };
 
   const leaveCommunity = (id: string) => {
@@ -76,6 +116,9 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
       next.delete(id);
       return next;
     });
+    if (isSupabaseConfigured && currentUser?.id) {
+      leaveCommunitySupabase(currentUser.id, id);
+    }
   };
 
   const createCommunity = (data: {
@@ -99,6 +142,15 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
     setCreatedCommunities((prev) => [newCommunity, ...prev]);
     // Auto-join created community
     joinCommunity(newCommunity.id);
+    if (isSupabaseConfigured && currentUser?.id) {
+      createCommunitySupabase({
+        name: data.name,
+        slug,
+        description: data.description,
+        isPublic: data.isPublic,
+        creatorId: currentUser.id,
+      });
+    }
     return newCommunity;
   };
 

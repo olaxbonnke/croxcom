@@ -20,9 +20,11 @@ import { useBookmarks } from "@/hooks/useBookmarks";
 import { usePosts } from "@/hooks/usePosts";
 import { PostOptionsMenu } from "@/components/feed/PostOptionsMenu";
 import { CodeBlock } from "@/components/feed/CodeBlock";
+import { RouteErrorBoundary } from "@/components/ui/RouteErrorBoundary";
 
 export const Route = createFileRoute("/posts/$postId")({
   component: PostViewRoute,
+  errorComponent: RouteErrorBoundary,
 });
 
 function PostViewRoute() {

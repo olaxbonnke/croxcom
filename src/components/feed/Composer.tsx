@@ -49,6 +49,7 @@ export function Composer({
     tags: string[];
     privacy: Privacy;
     imageDataUrls: string[];
+    imageFiles: File[];
     media?: PostMedia | PostMedia[];
   }) => void;
   placeholder?: string;
@@ -66,6 +67,7 @@ export function Composer({
 
   // Images in main area
   const [images, setImages] = useState<string[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
 
@@ -108,6 +110,7 @@ export function Composer({
       tags,
       privacy,
       imageDataUrls: images,
+      imageFiles,
       media,
     });
 
@@ -116,6 +119,7 @@ export function Composer({
     setCodeValue("");
     setLanguage("typescript");
     setImages([]);
+    setImageFiles([]);
     setFocused(false);
     setIsIdeOpen(false);
     setIsIdeMinimized(false);
@@ -131,6 +135,7 @@ export function Composer({
     }
     const filesToProcess = files.slice(0, maxAllowed - currentCount);
     filesToProcess.forEach((file) => {
+      setImageFiles((prev) => (prev.length < maxAllowed ? [...prev, file] : prev));
       const reader = new FileReader();
       reader.onload = (ev) => {
         const url = ev.target?.result as string;
@@ -143,6 +148,7 @@ export function Composer({
 
   const removeImage = (idx: number) => {
     setImages((prev) => prev.filter((_, i) => i !== idx));
+    setImageFiles((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const toggleIde = () => {

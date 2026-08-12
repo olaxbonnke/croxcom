@@ -12,6 +12,7 @@ import { usePosts } from "@/hooks/usePosts";
 import { useCommunities } from "@/lib/CommunityContext";
 import { useAuth } from "@/lib/AuthContext";
 import { SHOW_DEMO_DATA } from "@/lib/config";
+import { isSupabaseConfigured, uploadPostImage } from "@/lib/supabase";
 
 export const Route = createFileRoute("/communities/$slug")({
   component: CommunityPage,
@@ -52,20 +53,40 @@ function CommunityPage() {
     (p) => p.community?.id === community.id || p.community?.slug === community.slug,
   );
 
-  const handleCommunityPost = ({
+  const handleCommunityPost = async ({
     body,
     tags,
     media,
     imageDataUrls,
+    imageFiles,
   }: {
     body: string;
     tags: string[];
     privacy: "public" | "followers" | "private";
     imageDataUrls: string[];
+    imageFiles?: File[];
     media?: PostMedia | PostMedia[];
   }) => {
     let finalMedia: PostMedia | undefined = Array.isArray(media) ? media[0] : media;
-    if (!finalMedia && imageDataUrls.length > 0) {
+    let imageUrls: string[] | undefined;
+
+    // Upload images to Supabase Storage if configured
+    if (isSupabaseConfigured && currentUser?.id && imageFiles && imageFiles.length > 0) {
+      const uploadedUrls = await Promise.all(
+        imageFiles.map((file) => uploadPostImage(currentUser.id, file)),
+      );
+      const validUrls = uploadedUrls.filter((url): url is string => url !== null);
+      if (validUrls.length > 0) {
+        imageUrls = validUrls;
+        finalMedia =
+          validUrls.length === 1
+            ? { kind: "image", url: validUrls[0], alt: "Uploaded image" }
+            : {
+                kind: "image-grid",
+                images: validUrls.map((url, i) => ({ url, alt: `Image ${i + 1}` })),
+              };
+      }
+    } else if (!finalMedia && imageDataUrls.length > 0) {
       finalMedia =
         imageDataUrls.length === 1
           ? { kind: "image", url: imageDataUrls[0], alt: "Uploaded image" }
@@ -84,6 +105,7 @@ function CommunityPage() {
       tags,
       stats: { comments: 0, reposts: 0, likes: 0 },
       ...(finalMedia ? { media: finalMedia } : {}),
+      ...(imageUrls ? { imageUrls } : {}),
     });
   };
 

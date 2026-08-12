@@ -5,7 +5,7 @@ import { mockNotifications } from "@/data/mock";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "@/lib/AuthContext";
-import { subscribeToNotifications, isSupabaseConfigured } from "@/lib/supabase";
+import { subscribeToNotifications, fetchNotificationsSupabase, markNotificationReadSupabase, isSupabaseConfigured } from "@/lib/supabase";
 
 import { NotificationSkeleton } from "@/components/feed/Skeleton";
 
@@ -22,11 +22,35 @@ function NotificationsPage() {
   useEffect(() => {
     let unsubscribe = () => {};
     if (isSupabaseConfigured && currentUser?.id) {
+      // Load existing notifications from Supabase
+      setIsLoading(true);
+      fetchNotificationsSupabase(currentUser.id).then((existing) => {
+        if (existing.length > 0) {
+          const mapped = existing.map((n: Record<string, unknown>) => ({
+            id: n.id as string,
+            actor: {
+              id: (n.actor as Record<string, unknown>)?.id as string || "unknown",
+              name: (n.actor as Record<string, unknown>)?.name as string || "Developer",
+              handle: (n.actor as Record<string, unknown>)?.handle as string || "dev",
+              avatarColor: (n.actor as Record<string, unknown>)?.avatarColor as string || "#00ff9f",
+            },
+            kind: (n.kind as string) || "system",
+            target: (n.content as string) || "your post",
+            time: new Date(n.created_at as string).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+            read: Boolean(n.is_read),
+          }));
+          setNotifications(mapped as typeof mockNotifications);
+        }
+        setIsLoading(false);
+      });
+
+      // Subscribe to new notifications
       unsubscribe = subscribeToNotifications(currentUser.id, (payload) => {
         if (payload.new) {
           const newNotif = {
             id: payload.new.id,
             actor: {
+              id: payload.new.actor?.id || "unknown",
               name: payload.new.actor?.name || "Developer",
               handle: payload.new.actor?.handle || "dev",
               avatarColor: "#00ff9f",
@@ -36,7 +60,7 @@ function NotificationsPage() {
             time: "Just now",
             read: false,
           };
-          setNotifications((prev) => [newNotif as any, ...prev]);
+          setNotifications((prev) => [newNotif as typeof mockNotifications[number], ...prev]);
         }
       });
     }
@@ -50,7 +74,13 @@ function NotificationsPage() {
     tab === "all" ? notifications : notifications.filter((n) => n.kind === "mention");
 
   const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setNotifications((prev) => {
+      // Persist read status to Supabase for unread notifications
+      if (isSupabaseConfigured) {
+        prev.filter((n) => !n.read).forEach((n) => markNotificationReadSupabase(n.id));
+      }
+      return prev.map((n) => ({ ...n, read: true }));
+    });
   };
 
   return (

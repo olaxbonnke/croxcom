@@ -23,10 +23,8 @@ export function BookmarkProvider({ children }: { children: ReactNode }) {
     async function loadBookmarks() {
       if (isSupabaseConfigured && currentUser?.id) {
         const sbBookmarks = await fetchBookmarksSupabase(currentUser.id);
-        if (sbBookmarks.length > 0) {
-          setSavedPosts(sbBookmarks);
-          return;
-        }
+        setSavedPosts(sbBookmarks);
+        return;
       }
 
       try {

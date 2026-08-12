@@ -14,6 +14,7 @@ import {
 import type { MockPost } from "@/data/mock";
 import { useAuth } from "@/lib/AuthContext";
 import { usePosts } from "@/hooks/usePosts";
+import { toast } from "sonner";
 
 interface PostOptionsMenuProps {
   post: MockPost;
@@ -34,7 +35,6 @@ export function PostOptionsMenu({ post, onPostDeleted }: PostOptionsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Edit modal state
   const [editBody, setEditBody] = useState(post.body);
@@ -63,11 +63,6 @@ export function PostOptionsMenu({ post, onPostDeleted }: PostOptionsMenuProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
-
   const handleEditSubmit = () => {
     if (!editBody.trim()) return;
     const parsedTags = editTagsText
@@ -76,7 +71,7 @@ export function PostOptionsMenu({ post, onPostDeleted }: PostOptionsMenuProps) {
       .filter(Boolean);
     editPost(post.id, editBody.trim(), parsedTags);
     setShowEditModal(false);
-    showToast("Post updated successfully");
+    toast.success("Post updated successfully");
   };
 
   const handleDeleteSubmit = () => {
@@ -87,14 +82,6 @@ export function PostOptionsMenu({ post, onPostDeleted }: PostOptionsMenuProps) {
 
   return (
     <div className="relative inline-block text-left" ref={menuRef}>
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-16 right-4 z-50 rounded-md bg-primary px-3.5 py-2 font-mono text-xs font-semibold text-primary-foreground shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
-          <Check className="h-4 w-4" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
-
       {/* Three dots button */}
       <button
         type="button"
@@ -146,7 +133,7 @@ export function PostOptionsMenu({ post, onPostDeleted }: PostOptionsMenuProps) {
                 onClick={() => {
                   setIsOpen(false);
                   setIsFollowing((prev) => !prev);
-                  showToast(
+                  toast.success(
                     isFollowing
                       ? `Unfollowed @${post.author.handle}`
                       : `Followed @${post.author.handle}`,
@@ -171,7 +158,7 @@ export function PostOptionsMenu({ post, onPostDeleted }: PostOptionsMenuProps) {
                 onClick={() => {
                   setIsOpen(false);
                   toggleMuteUser(post.author.handle);
-                  showToast(
+                  toast.success(
                     isMuted ? `Unmuted @${post.author.handle}` : `Muted @${post.author.handle}`,
                   );
                 }}
@@ -187,7 +174,7 @@ export function PostOptionsMenu({ post, onPostDeleted }: PostOptionsMenuProps) {
                 onClick={() => {
                   setIsOpen(false);
                   toggleBlockUser(post.author.handle);
-                  showToast(
+                  toast.success(
                     isBlocked
                       ? `Unblocked @${post.author.handle}`
                       : `Blocked @${post.author.handle}`,
@@ -205,7 +192,7 @@ export function PostOptionsMenu({ post, onPostDeleted }: PostOptionsMenuProps) {
                 type="button"
                 onClick={() => {
                   setIsOpen(false);
-                  showToast("Report submitted. Thank you.");
+                  toast.success("Report submitted. Thank you.");
                 }}
                 className="flex w-full items-center gap-2 rounded px-2.5 py-2 text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
               >

@@ -119,6 +119,27 @@ export async function fetchPostsSupabase(page = 0, pageSize = 20) {
 }
 
 /**
+ * Full-text search Posts via tsvector (uses websearch syntax)
+ */
+export async function searchPostsSupabase(query: string, page = 0, pageSize = 20) {
+  if (!isSupabaseConfigured || !query.trim()) return [];
+  const from = page * pageSize;
+  const to = from + pageSize - 1;
+  const { data, error } = await supabase
+    .from("posts")
+    .select("*, profiles(*)")
+    .textSearch("search_vector", query.trim(), { type: "websearch" })
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (error) {
+    console.error("Error searching posts:", error);
+    return [];
+  }
+  return data || [];
+}
+
+/**
  * Create a new Post in Supabase
  */
 export async function createPostSupabase(post: {
@@ -130,6 +151,7 @@ export async function createPostSupabase(post: {
   aiModel?: string;
   toolUrl?: string;
   bountyAmount?: string;
+  imageUrls?: string[];
 }) {
   if (!isSupabaseConfigured) return null;
   const { data, error } = await supabase
@@ -143,6 +165,7 @@ export async function createPostSupabase(post: {
       ai_model: post.aiModel,
       tool_url: post.toolUrl,
       bounty_amount: post.bountyAmount,
+      image_urls: post.imageUrls || [],
     })
     .select()
     .single();
@@ -438,6 +461,36 @@ export async function leaveCommunitySupabase(
 }
 
 /**
+ * Create a Community in Supabase
+ */
+export async function createCommunitySupabase(community: {
+  name: string;
+  slug: string;
+  description: string;
+  isPublic: boolean;
+  creatorId: string;
+}) {
+  if (!isSupabaseConfigured) return null;
+  const { data, error } = await supabase
+    .from("communities")
+    .insert({
+      name: community.name,
+      slug: community.slug,
+      description: community.description,
+      is_public: community.isPublic,
+      creator_id: community.creatorId,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating community:", error);
+    return null;
+  }
+  return data;
+}
+
+/**
  * Mark a Notification as Read in Supabase
  */
 export async function markNotificationReadSupabase(notificationId: string) {
@@ -513,4 +566,73 @@ export async function uploadPostImage(
 
   const { data } = supabase.storage.from("post-images").getPublicUrl(filePath);
   return data.publicUrl;
+}
+
+/**
+ * Create a Conversation between two users in Supabase
+ */
+export async function createConversationSupabase(
+  userId: string,
+  participantId: string,
+): Promise<{ id: string } | null> {
+  if (!isSupabaseConfigured) return null;
+
+  // 1. Create the conversation
+  const { data: conv, error: convError } = await supabase
+    .from("conversations")
+    .insert({})
+    .select("id")
+    .single();
+
+  if (convError || !conv) {
+    console.error("Error creating conversation:", convError);
+    return null;
+  }
+
+  // 2. Add both participants
+  const { error: partError } = await supabase.from("conversation_participants").insert([
+    { conversation_id: conv.id, user_id: userId },
+    { conversation_id: conv.id, user_id: participantId },
+  ]);
+
+  if (partError) {
+    console.error("Error adding conversation participants:", partError);
+    return null;
+  }
+
+  return conv;
+}
+
+/**
+ * Fetch Conversations for a user from Supabase
+ */
+export async function fetchConversationsSupabase(userId: string) {
+  if (!isSupabaseConfigured) return [];
+
+  // Get conversation IDs the user participates in
+  const { data: participantRows, error: partError } = await supabase
+    .from("conversation_participants")
+    .select("conversation_id")
+    .eq("user_id", userId);
+
+  if (partError || !participantRows || participantRows.length === 0) {
+    if (partError) console.error("Error fetching conversation participants:", partError);
+    return [];
+  }
+
+  const convIds = participantRows.map((r) => r.conversation_id);
+
+  // Fetch conversations with participant profiles and last message
+  const { data: conversations, error: convError } = await supabase
+    .from("conversations")
+    .select("*, conversation_participants(user_id, profiles:profiles(*)), messages(*)")
+    .in("id", convIds)
+    .order("created_at", { ascending: false });
+
+  if (convError) {
+    console.error("Error fetching conversations:", convError);
+    return [];
+  }
+
+  return conversations || [];
 }

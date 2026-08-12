@@ -198,7 +198,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     setIsAuthenticated(false);
     setHasCompletedOnboarding(false);
-    localStorage.removeItem(AUTH_STORAGE_KEY);
+    setOnboardingDetails(undefined);
+    setCurrentUser(DEFAULT_LIVE_USER);
+    // Clear all user-specific localStorage keys to prevent data bleed (Issue #9)
+    localStorage.removeItem(USER_PROFILE_KEY);
+    localStorage.removeItem("croxcom-bookmarks");
+    localStorage.removeItem("croxcom_communities");
+    localStorage.removeItem("croxcom-saved-library-ids");
+    // AUTH_STORAGE_KEY is written by the persistence effect with the new false state
   };
 
   const completeOnboarding = (details: OnboardingDetails) => {

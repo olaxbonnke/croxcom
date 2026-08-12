@@ -6,6 +6,7 @@ import { isSupabaseConfigured } from "@/lib/supabase";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ArrowRight, Check, Github, Mail, Sparkles, Terminal, Users, User } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
@@ -82,32 +83,47 @@ function AuthPage() {
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) return;
-    await login("email", email.trim());
-    // If Supabase is not configured, mock mode advances directly to onboarding
-    if (!isSupabaseConfigured) {
-      setPhase("onboarding");
-    } else {
-      // Real Supabase: show "check your inbox" screen, wait for magic link
-      setPhase("check-inbox");
+    if (!email.trim()) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    try {
+      await login("email", email.trim());
+      // If Supabase is not configured, mock mode advances directly to onboarding
+      if (!isSupabaseConfigured) {
+        setPhase("onboarding");
+      } else {
+        // Real Supabase: show "check your inbox" screen, wait for magic link
+        setPhase("check-inbox");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Sign-in failed. Please try again.");
     }
   };
 
   const handleGithubLogin = async () => {
-    await login("github");
-    if (!isSupabaseConfigured) {
-      setPhase("onboarding");
-    } else {
-      setPhase("awaiting-redirect");
+    try {
+      await login("github");
+      if (!isSupabaseConfigured) {
+        setPhase("onboarding");
+      } else {
+        setPhase("awaiting-redirect");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "GitHub sign-in failed. Please try again.");
     }
   };
 
   const handleGoogleLogin = async () => {
-    await login("google");
-    if (!isSupabaseConfigured) {
-      setPhase("onboarding");
-    } else {
-      setPhase("awaiting-redirect");
+    try {
+      await login("google");
+      if (!isSupabaseConfigured) {
+        setPhase("onboarding");
+      } else {
+        setPhase("awaiting-redirect");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Google sign-in failed. Please try again.");
     }
   };
 

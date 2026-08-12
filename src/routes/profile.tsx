@@ -24,9 +24,11 @@ import type { MockUser } from "@/data/mock";
 import { useAuth } from "@/lib/AuthContext";
 import { UserProfileView } from "./profile.$handle";
 import { useLocation } from "@tanstack/react-router";
+import { RouteErrorBoundary } from "@/components/ui/RouteErrorBoundary";
 
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
+  errorComponent: RouteErrorBoundary,
 });
 
 const TABS = ["Posts", "Replies", "Reposts", "Gallery"] as const;

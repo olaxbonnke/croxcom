@@ -7,7 +7,7 @@ import { MessageInput } from "@/components/messages/MessageInput";
 import { mockConversations, mockUsers, type MockUser, type MockConversation } from "@/data/mock";
 import { Search, X, MessageSquarePlus } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
-import { subscribeToMessages, sendMessageSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { subscribeToMessages, sendMessageSupabase, isSupabaseConfigured, createConversationSupabase, fetchConversationsSupabase } from "@/lib/supabase";
 import { SHOW_DEMO_DATA } from "@/lib/config";
 
 export const Route = createFileRoute("/messages")({
@@ -20,6 +20,43 @@ function MessagesPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showNewModal, setShowNewModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Load existing conversations from Supabase on mount
+  useEffect(() => {
+    async function loadConversations() {
+      if (!isSupabaseConfigured || !currentUser?.id) return;
+      const sbConvs = await fetchConversationsSupabase(currentUser.id);
+      if (sbConvs.length > 0) {
+        const mapped: MockConversation[] = sbConvs.map((c: Record<string, unknown>) => {
+          const participants = (c.conversation_participants as Array<{ user_id: string; profiles: Record<string, unknown> }>) || [];
+          const otherParticipant = participants.find((p) => p.user_id !== currentUser.id);
+          const profile = otherParticipant?.profiles || {};
+          const messages = ((c.messages as Array<Record<string, unknown>>) || []).map((m) => ({
+            id: m.id as string,
+            senderId: m.sender_id === currentUser.id ? "me" : (m.sender_id as string),
+            body: (m.body as string) || "",
+            time: new Date(m.created_at as string).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }),
+          }));
+          const lastMsg = messages[messages.length - 1];
+          return {
+            id: c.id as string,
+            participant: {
+              id: otherParticipant?.user_id || "unknown",
+              name: (profile.name as string) || "User",
+              handle: (profile.handle as string) || "user",
+              avatarColor: (profile.avatarColor as string) || "#00ff9f",
+            },
+            lastMessage: lastMsg?.body || "No messages yet",
+            lastTime: lastMsg?.time || "",
+            unread: 0,
+            messages,
+          };
+        });
+        setConversations(mapped);
+      }
+    }
+    loadConversations();
+  }, [currentUser?.id]);
 
   useEffect(() => {
     let unsubscribe = () => {};
@@ -74,7 +111,7 @@ function MessagesPage() {
     };
 
     if (isSupabaseConfigured && currentUser?.id && activeConv?.participant.id) {
-      sendMessageSupabase(currentUser.id, activeConv.participant.id, body);
+      sendMessageSupabase(activeConv.id, currentUser.id, body);
     }
 
     setConversations((prev) =>
@@ -92,13 +129,23 @@ function MessagesPage() {
     );
   };
 
-  const handleStartConversation = (user: MockUser) => {
+  const handleStartConversation = async (user: MockUser) => {
     const existing = conversations.find((c) => c.participant.handle === user.handle);
     if (existing) {
       setActiveId(existing.id);
     } else {
+      let convId = `conv-${Date.now()}`;
+
+      // Create real conversation in Supabase if configured
+      if (isSupabaseConfigured && currentUser?.id) {
+        const created = await createConversationSupabase(currentUser.id, user.id);
+        if (created) {
+          convId = created.id;
+        }
+      }
+
       const newConv: MockConversation = {
-        id: `conv-${Date.now()}`,
+        id: convId,
         participant: user,
         lastMessage: "Say hello!",
         lastTime: "Just now",

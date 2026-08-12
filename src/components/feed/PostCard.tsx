@@ -218,7 +218,7 @@ function Avatar({ user }: { user: MockPost["author"] }) {
       style={{ background: user.avatarColor, color: "#0a0a0a" }}
     >
       {user.avatar ? (
-        <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
+        <img src={user.avatar} alt={user.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
       ) : (
         initials
       )}
@@ -323,6 +323,7 @@ function SingleMediaBlock({ media }: { media: PostMedia }) {
             src={media.url}
             alt={media.alt}
             loading="lazy"
+            decoding="async"
             className="w-full max-h-[420px] object-cover transition-transform duration-300 group-hover:scale-[1.01]"
           />
         </div>
@@ -347,6 +348,7 @@ function SingleMediaBlock({ media }: { media: PostMedia }) {
                   src={imgs[0].url}
                   alt={imgs[0].alt}
                   loading="lazy"
+            decoding="async"
                   className="w-full max-h-[420px] object-cover transition-transform duration-300 group-hover:scale-[1.01]"
                 />
               </div>
@@ -369,6 +371,7 @@ function SingleMediaBlock({ media }: { media: PostMedia }) {
                       src={img.url}
                       alt={img.alt}
                       loading="lazy"
+            decoding="async"
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                     />
                   </div>
@@ -391,6 +394,7 @@ function SingleMediaBlock({ media }: { media: PostMedia }) {
                     src={imgs[0].url}
                     alt={imgs[0].alt}
                     loading="lazy"
+            decoding="async"
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                   />
                 </div>
@@ -406,6 +410,7 @@ function SingleMediaBlock({ media }: { media: PostMedia }) {
                       src={imgs[1].url}
                       alt={imgs[1].alt}
                       loading="lazy"
+            decoding="async"
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                     />
                   </div>
@@ -420,6 +425,7 @@ function SingleMediaBlock({ media }: { media: PostMedia }) {
                       src={imgs[2].url}
                       alt={imgs[2].alt}
                       loading="lazy"
+            decoding="async"
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                     />
                   </div>
@@ -444,6 +450,7 @@ function SingleMediaBlock({ media }: { media: PostMedia }) {
                     src={img.url}
                     alt={img.alt}
                     loading="lazy"
+            decoding="async"
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                   />
                 </div>
@@ -465,6 +472,7 @@ function SingleMediaBlock({ media }: { media: PostMedia }) {
             src={media.thumbnail}
             alt={media.title}
             loading="lazy"
+            decoding="async"
             className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           />
           <div className="absolute inset-0 grid place-items-center bg-black/30 group-hover:bg-black/20 transition-colors">

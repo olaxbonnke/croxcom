@@ -3,16 +3,20 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { AppShell } from "@/components/layout/AppShell";
 import { CommunityCard } from "@/components/browse/CommunityCard";
+import { PostCard } from "@/components/feed/PostCard";
 import { mockCommunities, trending, mockUsers } from "@/data/mock";
-import { Search, X } from "lucide-react";
-
+import { Search, X, Loader2 } from "lucide-react";
+import { searchPostsSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import type { MockPost } from "@/data/mock";
 import { SHOW_DEMO_DATA } from "@/lib/config";
+import { RouteErrorBoundary } from "@/components/ui/RouteErrorBoundary";
 
 export const Route = createFileRoute("/browse")({
   validateSearch: z.object({
     q: z.string().optional().catch(undefined),
   }),
   component: BrowsePage,
+  errorComponent: RouteErrorBoundary,
 });
 
 function BrowsePage() {
@@ -59,6 +63,47 @@ function BrowsePage() {
       return next;
     });
   };
+
+  // Server-side full-text post search
+  const [searchResults, setSearchResults] = useState<MockPost[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    if (!q || !isSupabaseConfigured) {
+      setSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const results = await searchPostsSupabase(q);
+        const mapped: MockPost[] = results.map((sp: Record<string, any>) => {
+          const profile = sp.profiles || {};
+          return {
+            id: sp.id,
+            author: {
+              id: sp.author_id,
+              name: profile.name || "AI Developer",
+              handle: profile.handle || "developer",
+              avatar: profile.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+              avatarColor: profile.avatarColor || "#00ff9f",
+              role: profile.role || "AI Developer",
+            },
+            time: new Date(sp.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+            body: sp.content,
+            tags: sp.tags || [],
+            stats: { likes: sp.likes_count || 0, comments: sp.comments_count || 0, reposts: 0 },
+          };
+        });
+        setSearchResults(mapped);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 400); // debounce
+    return () => clearTimeout(timer);
+  }, [q]);
 
   return (
     <AppShell>
@@ -187,10 +232,37 @@ function BrowsePage() {
           </section>
         )}
 
+        {/* Post search results */}
+        {q && isSupabaseConfigured && (
+          <section>
+            <h2 className="mb-3 px-4 font-mono text-xs uppercase tracking-wider text-muted-foreground">
+              # post results
+            </h2>
+            {isSearching ? (
+              <div className="flex items-center justify-center gap-2 py-8 font-mono text-xs text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <span>searching posts…</span>
+              </div>
+            ) : searchResults.length > 0 ? (
+              <div className="divide-y divide-border/70 px-0">
+                {searchResults.map((post) => (
+                  <PostCard key={post.id} post={post} />
+                ))}
+              </div>
+            ) : (
+              <div className="px-4 py-6 text-center font-mono text-xs text-muted-foreground">
+                No matching posts found
+              </div>
+            )}
+          </section>
+        )}
+
         {/* No results */}
         {filteredTrending.length === 0 &&
           filteredCommunities.length === 0 &&
-          filteredPeople.length === 0 && (
+          filteredPeople.length === 0 &&
+          searchResults.length === 0 &&
+          !isSearching && (
             <div className="px-4 py-16 text-center font-mono text-xs text-muted-foreground">
               $ search --query "{query}" --no-results-found
             </div>

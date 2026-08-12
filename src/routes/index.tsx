@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AppShell } from "@/components/layout/AppShell";
 import { TopBar } from "@/components/layout/TopBar";
@@ -10,6 +10,7 @@ import { LandingPage } from "@/components/landing/LandingPage";
 import { mockCommunities, type PostMedia } from "@/data/mock";
 import { usePosts } from "@/hooks/usePosts";
 import { useAuth } from "@/lib/AuthContext";
+import { isSupabaseConfigured, uploadPostImage } from "@/lib/supabase";
 import { useCommunities as useCommunityCtx } from "@/lib/CommunityContext";
 import { fetchLiveAINews, DEFAULT_AI_NEWS, type NewsArticle } from "@/lib/news";
 import {
@@ -21,7 +22,9 @@ import {
   Plus,
   X,
   MessageSquare,
+  Loader2,
 } from "lucide-react";
+import { RouteErrorBoundary } from "@/components/ui/RouteErrorBoundary";
 
 const ADS = [
   {
@@ -42,6 +45,7 @@ export const Route = createFileRoute("/")({
     meta: [{ title: "CroxCom — AI Developer Community" }],
   }),
   component: RootRoute,
+  errorComponent: RouteErrorBoundary,
 });
 
 function RootRoute() {
@@ -58,7 +62,7 @@ function FeedPage() {
   const { currentUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"Trend" | "Following" | "Communities">("Trend");
-  const { posts, addPost } = usePosts();
+  const { posts, addPost, loadMore, hasMore, isLoadingMore } = usePosts();
   const [aiNews, setAiNews] = useState<NewsArticle[]>(DEFAULT_AI_NEWS);
 
   // Fetch live AI & Tech news from real APIs on mount
@@ -77,20 +81,62 @@ function FeedPage() {
     return () => clearTimeout(t);
   }, []);
 
-  const handlePost = ({
+  // Infinite scroll sentinel
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  const sentinelCallback = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (observerRef.current) observerRef.current.disconnect();
+      if (!node || !hasMore) return;
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          if (entries[0]?.isIntersecting && hasMore && !isLoadingMore) {
+            loadMore();
+          }
+        },
+        { rootMargin: "200px" },
+      );
+      observerRef.current.observe(node);
+    },
+    [hasMore, isLoadingMore, loadMore],
+  );
+
+  const handlePost = async ({
     body,
     tags,
     media,
     imageDataUrls,
+    imageFiles,
   }: {
     body: string;
     tags: string[];
     privacy: string;
     imageDataUrls: string[];
+    imageFiles?: File[];
     media?: PostMedia | PostMedia[];
   }) => {
     let finalMedia = media;
-    if (!finalMedia && imageDataUrls.length > 0) {
+    let imageUrls: string[] | undefined;
+
+    // Upload images to Supabase Storage if configured
+    if (isSupabaseConfigured && currentUser?.id && imageFiles && imageFiles.length > 0) {
+      const uploadedUrls = await Promise.all(
+        imageFiles.map((file) => uploadPostImage(currentUser.id, file)),
+      );
+      const validUrls = uploadedUrls.filter((url): url is string => url !== null);
+      if (validUrls.length > 0) {
+        imageUrls = validUrls;
+        finalMedia =
+          validUrls.length === 1
+            ? { kind: "image", url: validUrls[0], alt: "Uploaded image" }
+            : {
+                kind: "image-grid",
+                images: validUrls.map((url, i) => ({ url, alt: `Image ${i + 1}` })),
+              };
+      }
+    } else if (!finalMedia && imageDataUrls.length > 0) {
+      // Fallback to data URLs for local/mock mode
       finalMedia =
         imageDataUrls.length === 1
           ? { kind: "image", url: imageDataUrls[0], alt: "Uploaded image" }
@@ -108,6 +154,7 @@ function FeedPage() {
       tags,
       stats: { comments: 0, reposts: 0, likes: 0 },
       ...(finalMedia ? { media: finalMedia } : {}),
+      ...(imageUrls ? { imageUrls } : {}),
     });
   };
 
@@ -264,6 +311,15 @@ function FeedPage() {
 
                 return null;
               })}
+
+              {/* Infinite scroll sentinel */}
+              <div ref={sentinelCallback} className="h-1" />
+              {isLoadingMore && (
+                <div className="flex items-center justify-center gap-2 py-6 font-mono text-xs text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <span>loading more…</span>
+                </div>
+              )}
             </motion.div>
           )}
 
@@ -313,9 +369,11 @@ function FeedPage() {
         </AnimatePresence>
       )}
 
-      <div className="px-4 py-10 text-center font-mono text-xs text-muted-foreground">
-        — end of feed —
-      </div>
+      {!hasMore && posts.length > 0 && (
+        <div className="px-4 py-10 text-center font-mono text-xs text-muted-foreground">
+          — end of feed —
+        </div>
+      )}
     </AppShell>
   );
 }

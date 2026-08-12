@@ -1,4 +1,3 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
@@ -70,7 +69,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createRootRouteWithContext()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -139,22 +138,18 @@ import { CommunityProvider } from "@/lib/CommunityContext";
 import { Toaster } from "@/components/ui/sonner";
 
 function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <CommunityProvider>
-          <LibraryProvider>
-            <PostProvider>
-              <BookmarkProvider>
-                <Outlet />
-                <Toaster />
-              </BookmarkProvider>
-            </PostProvider>
-          </LibraryProvider>
-        </CommunityProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <AuthProvider>
+      <CommunityProvider>
+        <LibraryProvider>
+          <PostProvider>
+            <BookmarkProvider>
+              <Outlet />
+              <Toaster />
+            </BookmarkProvider>
+          </PostProvider>
+        </LibraryProvider>
+      </CommunityProvider>
+    </AuthProvider>
   );
 }

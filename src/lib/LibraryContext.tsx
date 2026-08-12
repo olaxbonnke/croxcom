@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { mockUsers, type MockUser } from "@/data/mock";
 import { SHOW_DEMO_DATA } from "@/lib/config";
+import { useAuth } from "@/lib/AuthContext";
+import {
+  isSupabaseConfigured,
+  fetchLibraryItemsSupabase,
+  toggleLibrarySaveSupabase,
+} from "@/lib/supabase";
 
 export type LibraryItem = {
   id: string;
@@ -107,7 +113,7 @@ interface LibraryContextType {
 const LibraryContext = createContext<LibraryContextType | undefined>(undefined);
 
 export function LibraryProvider({ children }: { children: React.ReactNode }) {
-  const [items] = useState<LibraryItem[]>(INITIAL_LIBRARY_ITEMS);
+  const [items, setItems] = useState<LibraryItem[]>(INITIAL_LIBRARY_ITEMS);
   const [savedIds, setSavedIds] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem(SAVED_ITEMS_KEY);
@@ -118,6 +124,31 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
     return ["lib-1", "lib-4"]; // default saved for demo
   });
 
+  const { currentUser } = useAuth();
+
+  // Load library items from Supabase when configured
+  useEffect(() => {
+    async function loadFromSupabase() {
+      if (!isSupabaseConfigured) return;
+      const sbItems = await fetchLibraryItemsSupabase();
+      if (sbItems.length > 0) {
+        const mapped: LibraryItem[] = sbItems.map((item: Record<string, unknown>) => ({
+          id: item.id as string,
+          title: (item.title as string) || "Untitled",
+          author: currentUser || mockUsers[0] || { id: "unknown", name: "Unknown", handle: "unknown", avatarColor: "#00ff9f" },
+          imageUrl: (item.image_url as string) || "",
+          prompt: (item.prompt as string) || "",
+          description: (item.description as string) || "",
+          category: (item.category as LibraryItem["category"]) || "UI/UX",
+          tags: (item.tags as string[]) || [],
+          likes: (item.likes as number) || 0,
+        }));
+        setItems(mapped);
+      }
+    }
+    loadFromSupabase();
+  }, [currentUser]);
+
   useEffect(() => {
     try {
       localStorage.setItem(SAVED_ITEMS_KEY, JSON.stringify(savedIds));
@@ -127,7 +158,11 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
   }, [savedIds]);
 
   const toggleSave = (id: string) => {
+    const isCurrentlySaved = savedIds.includes(id);
     setSavedIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
+    if (isSupabaseConfigured && currentUser?.id) {
+      toggleLibrarySaveSupabase(currentUser.id, id, isCurrentlySaved);
+    }
   };
 
   const isSaved = (id: string) => savedIds.includes(id);
