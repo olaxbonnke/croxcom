@@ -656,6 +656,23 @@ export async function joinCommunitySupabase(
 }
 
 /**
+ * Fetch Community Members from Supabase
+ */
+export async function fetchCommunityMembersSupabase(communityId: string) {
+  if (!isSupabaseConfigured) return [];
+  const { data, error } = await supabase
+    .from("community_members")
+    .select("*, profiles(*)")
+    .eq("community_id", communityId);
+
+  if (error) {
+    console.error("Error fetching community members:", error);
+    return [];
+  }
+  return data || [];
+}
+
+/**
  * Leave a Community in Supabase
  */
 export async function leaveCommunitySupabase(

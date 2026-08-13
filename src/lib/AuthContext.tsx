@@ -186,11 +186,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (provider: "email" | "github" | "google", email?: string, captchaToken?: string) => {
     if (isSupabaseConfigured) {
       if (provider === "github") {
-        await signInWithGitHub();
+        const { error } = await signInWithGitHub();
+        if (error) throw error;
       } else if (provider === "google") {
-        await signInWithGoogle();
+        const { error } = await signInWithGoogle();
+        if (error) throw error;
       } else if (email) {
-        await signInWithEmail(email, captchaToken);
+        const { error } = await signInWithEmail(email, captchaToken);
+        if (error) throw error;
       }
     } else {
       // Mock mode fallback when Supabase is not configured

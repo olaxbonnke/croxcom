@@ -12,7 +12,9 @@ import { usePosts } from "@/hooks/usePosts";
 import { useCommunities } from "@/lib/CommunityContext";
 import { useAuth } from "@/lib/AuthContext";
 import { SHOW_DEMO_DATA } from "@/lib/config";
-import { isSupabaseConfigured, uploadPostImage } from "@/lib/supabase";
+import { isSupabaseConfigured, uploadPostImage, fetchCommunityMembersSupabase } from "@/lib/supabase";
+import { useEffect } from "react";
+import type { MockUser } from "@/data/mock";
 
 export const Route = createFileRoute("/communities/$slug")({
   component: CommunityPage,
@@ -25,9 +27,34 @@ function CommunityPage() {
   const allCommunities = [...mockCommunities, ...createdCommunities];
   const community = allCommunities.find((c) => c.slug === slug || c.id === slug);
   const [activeTab, setActiveTab] = useState<"Posts" | "Members" | "About">("Posts");
+  const [membersList, setMembersList] = useState<MockUser[]>([]);
   const { posts, addPost } = usePosts();
   const { currentUser } = useAuth();
   const joined = community ? isMember(community.id) : false;
+
+  useEffect(() => {
+    async function loadMembers() {
+      if (community && isSupabaseConfigured) {
+        const raw = await fetchCommunityMembersSupabase(community.id);
+        const mapped: MockUser[] = raw.map((m: any) => ({
+          id: m.user_id,
+          name: m.profiles?.name || "Developer",
+          handle: m.profiles?.handle || "dev",
+          avatarColor: "#00ff9f",
+          role: m.profiles?.role || "Community Member",
+          avatar: m.profiles?.avatar,
+        }));
+        if (mapped.length > 0) {
+          setMembersList(mapped);
+        } else {
+          setMembersList(SHOW_DEMO_DATA ? mockUsers : [currentUser]);
+        }
+      } else {
+        setMembersList(SHOW_DEMO_DATA ? mockUsers : [currentUser]);
+      }
+    }
+    loadMembers();
+  }, [community?.id, joined, currentUser]);
 
   if (!community) {
     return (
@@ -226,31 +253,37 @@ function CommunityPage() {
 
         {activeTab === "Members" && (
           <div className="flex gap-3 px-4 py-4 flex-wrap">
-            {(SHOW_DEMO_DATA ? mockUsers : []).map((user) => (
-              <Link
-                key={user.id}
-                to="/profile/$handle"
-                params={{ handle: user.handle }}
-                className="flex-1 min-w-[150px] rounded-md border border-border/70 bg-card/40 px-3 py-2.5 flex items-center gap-2 hover:bg-accent/30 transition-colors"
-              >
-                <div
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-md font-mono text-xs"
-                  style={{ background: user.avatarColor, color: "#0a0a0a" }}
+            {membersList.length > 0 ? (
+              membersList.map((user) => (
+                <Link
+                  key={user.id}
+                  to="/profile/$handle"
+                  params={{ handle: user.handle }}
+                  className="flex-1 min-w-[150px] rounded-md border border-border/70 bg-card/40 px-3 py-2.5 flex items-center gap-2 hover:bg-accent/30 transition-colors"
                 >
-                  {user.name
-                    .split(" ")
-                    .map((p) => p[0])
-                    .join("")
-                    .slice(0, 2)}
-                </div>
-                <div className="min-w-0 leading-tight">
-                  <div className="truncate text-sm font-medium text-foreground">{user.name}</div>
-                  <div className="truncate font-mono text-xs text-muted-foreground">
-                    @{user.handle}
+                  <div
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-md font-mono text-xs"
+                    style={{ background: user.avatarColor || "#00ff9f", color: "#0a0a0a" }}
+                  >
+                    {user.name
+                      .split(" ")
+                      .map((p) => p[0])
+                      .join("")
+                      .slice(0, 2)}
                   </div>
-                </div>
-              </Link>
-            ))}
+                  <div className="min-w-0 leading-tight">
+                    <div className="truncate text-sm font-medium text-foreground">{user.name}</div>
+                    <div className="truncate font-mono text-xs text-muted-foreground">
+                      @{user.handle}
+                    </div>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <div className="w-full text-center py-8 font-mono text-xs text-muted-foreground">
+                No members found in this community yet
+              </div>
+            )}
           </div>
         )}
 
