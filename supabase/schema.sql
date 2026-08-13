@@ -442,25 +442,59 @@ create trigger on_comment_notify
   after insert on public.comments
   for each row execute procedure public.notify_on_comment();
 
--- Auto-create profile on signup from auth.users
+-- Auto-create profile on signup from auth.users (Fault-Tolerant)
 create or replace function public.handle_new_user()
-returns trigger as $$
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  base_handle text;
+  final_handle text;
+  raw_email text;
 begin
-  insert into public.profiles (id, name, handle, avatar, role)
+  raw_email := coalesce(new.email, 'user');
+  base_handle := lower(regexp_replace(
+    coalesce(new.raw_user_meta_data->>'user_name', new.raw_user_meta_data->>'preferred_username', split_part(raw_email, '@', 1)),
+    '[^a-z0-9_]', '_', 'g'
+  ));
+  
+  if base_handle is null or base_handle = '' then
+    base_handle := 'dev';
+  end if;
+
+  final_handle := base_handle || '_' || substring(new.id::text from 1 for 4);
+
+  insert into public.profiles (
+    id,
+    name,
+    handle,
+    avatar,
+    role,
+    onboarding_completed
+  )
   values (
     new.id,
-    coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
-    lower(regexp_replace(coalesce(new.raw_user_meta_data->>'user_name', split_part(new.email, '@', 1)), '[^a-z0-9_]', '_', 'g')),
+    coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', split_part(raw_email, '@', 1), 'AI Developer'),
+    final_handle,
     coalesce(new.raw_user_meta_data->>'avatar_url', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'),
-    'AI Developer'
-  );
+    'AI Developer',
+    false
+  )
+  on conflict (id) do update set
+    name = excluded.name,
+    avatar = coalesce(public.profiles.avatar, excluded.avatar);
+
+  return new;
+exception when others then
+  raise warning 'handle_new_user trigger exception: %', sqlerrm;
   return new;
 end;
-$$ language plpgsql security definer;
+$$;
 
-create or replace trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute procedure public.handle_new_user();
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
+grant execute on function public.handle_new_user() to service_role;
 
 -- ============================================================================
 -- REALTIME PUBLICATIONS
