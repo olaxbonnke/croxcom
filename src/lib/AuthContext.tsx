@@ -144,8 +144,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setCurrentUser(updatedUser);
         localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(updatedUser));
 
-        // Mark onboarding as completed ONLY if explicitly saved in profile or local state
-        const isCompleted = Boolean(profile?.onboarding_completed);
+        // An existing user has completed onboarding if they have onboarding_completed: true OR an existing profile handle & name
+        const isCompleted = Boolean(
+          profile?.onboarding_completed || (profile?.handle && profile?.name),
+        );
         setHasCompletedOnboarding(isCompleted);
         setIsLoadingAuth(false);
       } else if (event === "SIGNED_OUT") {
@@ -182,8 +184,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [isAuthenticated, hasCompletedOnboarding, onboardingDetails]);
 
   const login = async (provider: "email" | "github" | "google", email?: string, captchaToken?: string) => {
-    setHasCompletedOnboarding(false);
-
     if (isSupabaseConfigured) {
       if (provider === "github") {
         await signInWithGitHub();
