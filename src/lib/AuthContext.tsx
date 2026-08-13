@@ -187,13 +187,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data, error } = await signInWithGitHub();
         if (error) throw error;
         if (data?.url) {
-          window.location.href = data.url;
+          window.location.assign(data.url);
+        } else {
+          throw new Error("GitHub authentication URL was not returned by Supabase.");
         }
       } else if (provider === "google") {
         const { data, error } = await signInWithGoogle();
         if (error) throw error;
         if (data?.url) {
-          window.location.href = data.url;
+          window.location.assign(data.url);
+        } else {
+          throw new Error("Google authentication URL was not returned by Supabase.");
         }
       } else if (email) {
         const { error } = await signInWithEmail(email, captchaToken);
