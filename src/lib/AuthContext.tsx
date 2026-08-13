@@ -28,7 +28,7 @@ interface AuthContextType {
   onboardingDetails?: OnboardingDetails;
   login: (provider: "email" | "github" | "google", email?: string, captchaToken?: string) => Promise<void> | void;
   logout: () => Promise<void> | void;
-  completeOnboarding: (details: OnboardingDetails) => void;
+  completeOnboarding: (details: OnboardingDetails, userUpdates?: Partial<MockUser>) => void;
   updateUser: (user: Partial<MockUser>) => void;
   isRealUser: boolean;
 }
@@ -135,6 +135,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           name,
           handle: uniqueHandle,
           avatar,
+          role: profile?.role || currentUserRef.current.role,
+          bio: profile?.bio ?? currentUserRef.current.bio,
           followers: profile?.followers ?? 0,
           following: profile?.following ?? 0,
           posts: profile?.posts ?? 0,
@@ -224,23 +226,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // AUTH_STORAGE_KEY is written by the persistence effect with the new false state
   };
 
-  const completeOnboarding = (details: OnboardingDetails) => {
+  const completeOnboarding = (details: OnboardingDetails, userUpdates?: Partial<MockUser>) => {
     setOnboardingDetails(details);
     setHasCompletedOnboarding(true);
-    const updated = {
-      ...currentUser,
-      role: details.teamRole || details.devPosition || currentUser.role,
-    };
-    setCurrentUser(updated);
-    localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(updated));
 
-    if (isSupabaseConfigured && currentUser.id) {
+    const mergedUser: MockUser = {
+      ...currentUser,
+      ...(userUpdates || {}),
+      role: details.teamRole || details.devPosition || userUpdates?.role || currentUser.role,
+    };
+
+    setCurrentUser(mergedUser);
+    localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(mergedUser));
+
+    if (isSupabaseConfigured && mergedUser.id) {
       upsertProfile({
-        id: currentUser.id,
-        name: currentUser.name,
-        handle: currentUser.handle,
-        role: updated.role,
-        bio: currentUser.bio || "",
+        id: mergedUser.id,
+        name: mergedUser.name,
+        handle: mergedUser.handle,
+        role: mergedUser.role,
+        bio: mergedUser.bio || "",
+        avatar: mergedUser.avatar,
         onboarding_completed: true,
         company_name: details.companyName,
         preferences: details.preferences,

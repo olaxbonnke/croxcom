@@ -206,7 +206,7 @@ function AuthPage() {
       companyName: devPosition === "Team" ? companyName.trim() : undefined,
     };
 
-    completeOnboarding(details);
+    completeOnboarding(details, { name: finalName, handle: finalHandle });
     toast.success("Profile setup complete! Welcome to CroxCom.");
     navigate({ to: "/", replace: true });
   };
@@ -218,11 +218,6 @@ function AuthPage() {
       .toLowerCase()
       .replace(/[^a-z0-9_]/g, "_");
 
-    updateUser({
-      name: finalName,
-      handle: finalHandle,
-    });
-
     const details: OnboardingDetails = {
       preferences: selectedInterests.length > 0 ? selectedInterests : ["Full-Stack Web Apps"],
       tools: selectedTools.length > 0 ? selectedTools : ["Cursor", "Claude"],
@@ -231,7 +226,7 @@ function AuthPage() {
       teamRole: "Solo Builder",
     };
 
-    completeOnboarding(details);
+    completeOnboarding(details, { name: finalName, handle: finalHandle });
     toast.success("Welcome to CroxCom!");
     navigate({ to: "/", replace: true });
   };
