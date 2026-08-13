@@ -512,22 +512,71 @@ export async function toggleLikeSupabase(
 }
 
 /**
- * Fetch user's liked post IDs from Supabase
+ * Fetch Liked Post IDs for User
  */
-export async function fetchLikedPostIdsSupabase(
-  userId: string,
-): Promise<string[]> {
+export async function fetchLikedPostIdsSupabase(userId: string) {
   if (!isSupabaseConfigured) return [];
   const { data, error } = await supabase
     .from("likes")
     .select("post_id")
     .eq("user_id", userId);
 
-  if (error) {
-    console.error("Error fetching liked posts:", error);
-    return [];
+  if (error || !data) return [];
+  return data.map((l: { post_id: string }) => l.post_id);
+}
+
+/**
+ * Toggle Repost in Supabase ('reposts' table)
+ */
+export async function toggleRepostSupabase(
+  userId: string,
+  postId: string,
+  isCurrentlyReposted: boolean,
+) {
+  if (!isSupabaseConfigured) return false;
+  if (isCurrentlyReposted) {
+    const { error } = await supabase
+      .from("reposts")
+      .delete()
+      .eq("user_id", userId)
+      .eq("post_id", postId);
+    if (error) console.error("Error removing repost:", error);
+    return !error;
+  } else {
+    const { error } = await supabase
+      .from("reposts")
+      .insert({ user_id: userId, post_id: postId });
+    if (error) console.error("Error creating repost:", error);
+    return !error;
   }
-  return (data || []).map((l) => l.post_id);
+}
+
+/**
+ * Fetch Reposted Post IDs for User
+ */
+export async function fetchRepostedPostIdsSupabase(userId: string) {
+  if (!isSupabaseConfigured) return [];
+  const { data, error } = await supabase
+    .from("reposts")
+    .select("post_id")
+    .eq("user_id", userId);
+
+  if (error || !data) return [];
+  return data.map((r: { post_id: string }) => r.post_id);
+}
+
+/**
+ * Fetch Following User IDs for User
+ */
+export async function fetchFollowingUserIdsSupabase(followerId: string) {
+  if (!isSupabaseConfigured) return [];
+  const { data, error } = await supabase
+    .from("follows")
+    .select("followed_id")
+    .eq("follower_id", followerId);
+
+  if (error || !data) return [];
+  return data.map((f: { followed_id: string }) => f.followed_id);
 }
 
 /**

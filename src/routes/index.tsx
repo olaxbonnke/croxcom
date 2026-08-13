@@ -10,7 +10,7 @@ import { LandingPage } from "@/components/landing/LandingPage";
 import { mockCommunities, type PostMedia } from "@/data/mock";
 import { usePosts } from "@/hooks/usePosts";
 import { useAuth } from "@/lib/AuthContext";
-import { isSupabaseConfigured, uploadPostImage } from "@/lib/supabase";
+import { isSupabaseConfigured, uploadPostImage, fetchFollowingUserIdsSupabase } from "@/lib/supabase";
 import { useCommunities as useCommunityCtx } from "@/lib/CommunityContext";
 import { fetchLiveAINews, DEFAULT_AI_NEWS, type NewsArticle } from "@/lib/news";
 import {
@@ -86,6 +86,7 @@ function FeedPage() {
   const [activeTab, setActiveTab] = useState<"Trend" | "Following" | "Communities">("Trend");
   const { posts, addPost, loadMore, hasMore, isLoadingMore } = usePosts();
   const [aiNews, setAiNews] = useState<NewsArticle[]>(DEFAULT_AI_NEWS);
+  const [followingUserIds, setFollowingUserIds] = useState<Set<string>>(new Set());
 
   // Fetch live AI & Tech news from real APIs on mount
   useEffect(() => {
@@ -97,6 +98,17 @@ function FeedPage() {
     }
     loadNews();
   }, []);
+
+  // Fetch following user IDs for Following feed tab
+  useEffect(() => {
+    async function loadFollowing() {
+      if (isSupabaseConfigured && currentUser?.id) {
+        const ids = await fetchFollowingUserIdsSupabase(currentUser.id);
+        setFollowingUserIds(new Set(ids));
+      }
+    }
+    loadFollowing();
+  }, [currentUser?.id, activeTab]);
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 250);
@@ -345,46 +357,54 @@ function FeedPage() {
             </motion.div>
           )}
 
-          {/* ── Following Tab (First item is Add Post composer section) ── */}
-          {activeTab === "Following" && (
-            <motion.div
-              key="following"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="divide-y divide-border/70"
-            >
-              {/* First item: Add Post section */}
-              <div className="bg-card/40 border-b border-border/70">
-                <Composer
-                  onSubmit={handlePost}
-                  placeholder="Share an update or code with your network…"
-                />
-              </div>
-
-              {posts.length > 0 ? (
-                posts.map((post) => (
-                  <motion.div
-                    key={post.id}
-                    layout
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.15 }}
-                  >
-                    <PostCard post={post} />
-                  </motion.div>
-                ))
-              ) : (
-                <div className="px-4 py-12 text-center">
-                  <div className="font-mono text-sm text-muted-foreground">
-                    $ feed --following --empty
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    No posts yet from developers you follow. Share an update above to get started!
-                  </p>
+          {/* ── Following Tab ── */}
+          {activeTab === "Following" && (() => {
+            const followingPosts = posts.filter(
+              (p) =>
+                p.author.id === currentUser?.id ||
+                followingUserIds.has(p.author.id) ||
+                followingUserIds.has(p.author.handle),
+            );
+            return (
+              <motion.div
+                key="following"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="divide-y divide-border/70"
+              >
+                {/* First item: Add Post section */}
+                <div className="bg-card/40 border-b border-border/70">
+                  <Composer
+                    onSubmit={handlePost}
+                    placeholder="Share an update or code with your network…"
+                  />
                 </div>
-              )}
-            </motion.div>
-          )}
+
+                {followingPosts.length > 0 ? (
+                  followingPosts.map((post) => (
+                    <motion.div
+                      key={post.id}
+                      layout
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <PostCard post={post} />
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="px-4 py-12 text-center">
+                    <div className="font-mono text-sm text-muted-foreground">
+                      $ feed --following --empty
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      No posts yet from developers you follow. Follow developers or share an update above!
+                    </p>
+                  </div>
+                )}
+              </motion.div>
+            );
+          })()}
 
           {/* ── Communities Tab ── */}
           {activeTab === "Communities" && <CommunitiesTab posts={posts} />}

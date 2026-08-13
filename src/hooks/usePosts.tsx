@@ -17,6 +17,8 @@ import {
   createCommentSupabase,
   fetchCommentsSupabase,
   deletePostSupabase,
+  toggleRepostSupabase,
+  fetchRepostedPostIdsSupabase,
 } from "@/lib/supabase";
 import { SHOW_DEMO_DATA } from "@/lib/config";
 import { toast } from "sonner";
@@ -117,11 +119,15 @@ export function PostProvider({ children }: { children: ReactNode }) {
         setHasMore(false);
       }
 
-      // Load liked post IDs for the current user
+      // Load liked & reposted post IDs for the current user
       if (currentUser?.id) {
         const likedIds = await fetchLikedPostIdsSupabase(currentUser.id);
         if (likedIds.length > 0) {
           setLikedPostIds(new Set(likedIds));
+        }
+        const repostedIds = await fetchRepostedPostIdsSupabase(currentUser.id);
+        if (repostedIds.length > 0) {
+          setRepostedPostIds(new Set(repostedIds));
         }
       }
     }
@@ -385,25 +391,33 @@ export function PostProvider({ children }: { children: ReactNode }) {
     [currentUser],
   );
 
-  const toggleRepost = useCallback((id: string) => {
-    setRepostedPostIds((prev) => {
-      const next = new Set(prev);
-      const wasReposted = next.has(id);
-      if (wasReposted) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      setPosts((ps) =>
-        ps.map((p) =>
-          p.id === id
-            ? { ...p, stats: { ...p.stats, reposts: p.stats.reposts + (wasReposted ? -1 : 1) } }
-            : p,
-        ),
-      );
-      return next;
-    });
-  }, []);
+  const toggleRepost = useCallback(
+    (id: string) => {
+      setRepostedPostIds((prev) => {
+        const next = new Set(prev);
+        const wasReposted = next.has(id);
+        if (wasReposted) {
+          next.delete(id);
+        } else {
+          next.add(id);
+        }
+        setPosts((ps) =>
+          ps.map((p) =>
+            p.id === id
+              ? { ...p, stats: { ...p.stats, reposts: p.stats.reposts + (wasReposted ? -1 : 1) } }
+              : p,
+          ),
+        );
+
+        if (isSupabaseConfigured && currentUser?.id) {
+          toggleRepostSupabase(currentUser.id, id, wasReposted);
+        }
+
+        return next;
+      });
+    },
+    [currentUser],
+  );
 
   const toggleMuteUser = useCallback((handle: string) => {
     setMutedUserHandles((prev) => {
