@@ -2,10 +2,10 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth, type OnboardingDetails } from "@/lib/AuthContext";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { isSupabaseConfigured, checkHandleAvailableSupabase } from "@/lib/supabase";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { ArrowRight, Check, Github, Mail, Sparkles, Terminal, Users, User } from "lucide-react";
+import { ArrowRight, Check, Github, Mail, Sparkles, Terminal, Users, User, Building2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
@@ -15,22 +15,39 @@ export const Route = createFileRoute("/auth")({
 type AuthPhase = "loading" | "login" | "check-inbox" | "awaiting-redirect" | "onboarding";
 
 const TOOLS_LIST = [
-  "PyTorch",
-  "vLLM",
-  "Transformers",
-  "LangChain",
+  "Cursor",
+  "Claude",
+  "Antigravity",
+  "v0",
+  "Bolt.new",
+  "Windsurf",
+  "Supabase",
+  "Lovable",
+  "Replit",
+  "ChatGPT",
   "Ollama",
-  "LlamaIndex",
-  "Next.js",
-  "Triton",
+  "LangChain",
+  "Vercel",
 ];
+
 const INTERESTS_LIST = [
-  "RAG & Vector DBs",
-  "Model Fine-Tuning",
+  "Full-Stack Web Apps",
   "Autonomous Agents",
-  "Interpretability",
-  "Synthetic Data",
-  "Evals",
+  "Code Generation & Refactoring",
+  "RAG & Document QA",
+  "Fine-Tuning & Local LLMs",
+  "AI Micro-SaaS",
+  "Scripting & Automation",
+  "UI/UX Design & Prototyping",
+];
+
+const ROLE_SUGGESTIONS = [
+  "Full-Stack AI Dev",
+  "Vibe Coder",
+  "Senior ML Engineer",
+  "AI Researcher",
+  "Founder & Builder",
+  "Tech Lead",
 ];
 
 function AuthPage() {
@@ -47,32 +64,54 @@ function AuthPage() {
   const [phase, setPhase] = useState<AuthPhase>("login");
   const [email, setEmail] = useState("");
 
-  // Onboarding state
-  const [displayName, setDisplayName] = useState(() => {
-    if (currentUser?.name && currentUser.name !== "New Developer") return currentUser.name;
-    return "";
-  });
-  const [userHandle, setUserHandle] = useState(() => {
-    if (currentUser?.handle && currentUser.handle !== "new_developer") return currentUser.handle;
-    return "";
-  });
-  const [selectedTools, setSelectedTools] = useState<string[]>(["PyTorch", "vLLM"]);
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([
-    "Autonomous Agents",
-    "RAG & Vector DBs",
-  ]);
-  const [devPosition, setDevPosition] = useState<"Solo" | "Team">("Team");
-  const [teamRole, setTeamRole] = useState("AI Infrastructure Engineer");
+  // Onboarding state with automatic pre-fill from OAuth/session
+  const [displayName, setDisplayName] = useState(() => currentUser?.name || "");
+  const [userHandle, setUserHandle] = useState(() => currentUser?.handle || "");
+  const [isHandleAvailable, setIsHandleAvailable] = useState<boolean | null>(null);
+  const [isCheckingHandle, setIsCheckingHandle] = useState(false);
 
-  // Keep displayName and userHandle updated from currentUser only if genuine name
+  const [selectedTools, setSelectedTools] = useState<string[]>(["Cursor", "Claude"]);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([
+    "Full-Stack Web Apps",
+    "Autonomous Agents",
+  ]);
+  const [devPosition, setDevPosition] = useState<"Solo" | "Team">("Solo");
+  const [companyName, setCompanyName] = useState("");
+  const [teamRole, setTeamRole] = useState("Full-Stack AI Dev");
+
+  // Keep displayName and userHandle pre-filled from currentUser
   useEffect(() => {
-    if (currentUser?.name && currentUser.name !== "New Developer" && !displayName) {
+    if (currentUser?.name && !displayName) {
       setDisplayName(currentUser.name);
     }
-    if (currentUser?.handle && currentUser.handle !== "new_developer" && !userHandle) {
+    if (currentUser?.handle && !userHandle) {
       setUserHandle(currentUser.handle);
     }
   }, [currentUser, displayName, userHandle]);
+
+  // Real-time handle availability checker
+  useEffect(() => {
+    let isMounted = true;
+    const clean = userHandle.trim().toLowerCase().replace(/^@/, "");
+    if (!clean) {
+      setIsHandleAvailable(null);
+      return;
+    }
+
+    setIsCheckingHandle(true);
+    const timer = setTimeout(async () => {
+      const free = await checkHandleAvailableSupabase(clean, currentUser?.id);
+      if (isMounted) {
+        setIsHandleAvailable(free);
+        setIsCheckingHandle(false);
+      }
+    }, 400);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [userHandle, currentUser?.id]);
 
   // If already authenticated AND completed onboarding, redirect to root feed
   useEffect(() => {
@@ -80,6 +119,13 @@ function AuthPage() {
       navigate({ to: "/", replace: true });
     }
   }, [isAuthenticated, hasCompletedOnboarding, navigate]);
+
+  // Transition to onboarding phase for any authenticated user who has not completed onboarding
+  useEffect(() => {
+    if (isAuthenticated && !hasCompletedOnboarding) {
+      setPhase("onboarding");
+    }
+  }, [isAuthenticated, hasCompletedOnboarding]);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,11 +135,9 @@ function AuthPage() {
     }
     try {
       await login("email", email.trim());
-      // If Supabase is not configured, mock mode advances directly to onboarding
       if (!isSupabaseConfigured) {
         setPhase("onboarding");
       } else {
-        // Real Supabase: show "check your inbox" screen, wait for magic link
         setPhase("check-inbox");
       }
     } catch (err: any) {
@@ -127,22 +171,26 @@ function AuthPage() {
     }
   };
 
-  // Transition to onboarding phase for any authenticated user who has not completed onboarding
-  useEffect(() => {
-    if (isAuthenticated && !hasCompletedOnboarding) {
-      setPhase("onboarding");
-    }
-  }, [isAuthenticated, hasCompletedOnboarding]);
+  const toggleItem = (list: string[], setList: (l: string[]) => void, item: string) => {
+    setList(list.includes(item) ? list.filter((i) => i !== item) : [...list, item]);
+  };
 
   const handleOnboardingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanHandle = (userHandle || email.split("@")[0] || "dev")
+
+    if (isHandleAvailable === false) {
+      toast.error("Handle @ " + userHandle + " is already taken. Please choose another handle.");
+      return;
+    }
+
+    const finalName = displayName.trim() || currentUser?.name || email.split("@")[0] || "AI Developer";
+    const finalHandle = (userHandle || currentUser?.handle || email.split("@")[0] || "dev")
       .toLowerCase()
       .replace(/[^a-z0-9_]/g, "_");
 
     updateUser({
-      name: displayName.trim() || email.split("@")[0] || "AI Developer",
-      handle: cleanHandle,
+      name: finalName,
+      handle: finalHandle,
     });
 
     const details: OnboardingDetails = {
@@ -150,73 +198,54 @@ function AuthPage() {
       tools: selectedTools,
       interests: selectedInterests,
       devPosition,
-      teamRole: devPosition === "Team" ? teamRole : "Solo Builder",
+      teamRole: devPosition === "Team" ? teamRole || "Team Member" : "Solo Builder",
+      companyName: devPosition === "Team" ? companyName.trim() : undefined,
     };
+
     completeOnboarding(details);
+    toast.success("Profile setup complete! Welcome to CroxCom.");
     navigate({ to: "/", replace: true });
   };
 
-  const toggleItem = (list: string[], setList: (l: string[]) => void, item: string) => {
-    if (list.includes(item)) {
-      setList(list.filter((i) => i !== item));
-    } else {
-      setList([...list, item]);
-    }
+  // 1-Click Quick Entry Skip Option
+  const handleSkipOnboarding = () => {
+    const finalName = currentUser?.name || displayName.trim() || email.split("@")[0] || "AI Developer";
+    const finalHandle = (currentUser?.handle || userHandle || email.split("@")[0] || "dev")
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, "_");
+
+    updateUser({
+      name: finalName,
+      handle: finalHandle,
+    });
+
+    const details: OnboardingDetails = {
+      preferences: selectedInterests.length > 0 ? selectedInterests : ["Full-Stack Web Apps"],
+      tools: selectedTools.length > 0 ? selectedTools : ["Cursor", "Claude"],
+      interests: selectedInterests.length > 0 ? selectedInterests : ["Full-Stack Web Apps"],
+      devPosition: "Solo",
+      teamRole: "Solo Builder",
+    };
+
+    completeOnboarding(details);
+    toast.success("Welcome to CroxCom!");
+    navigate({ to: "/", replace: true });
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8 relative overflow-hidden font-sans">
-      {/* Top right theme toggle */}
-      <div className="absolute top-4 right-4 z-20">
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-background p-4 overflow-hidden font-sans select-none">
+      {/* Top Bar */}
+      <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-20 max-w-5xl mx-auto">
+        <Logo size="md" />
         <ThemeToggle />
       </div>
 
-      {/* Grid background effect */}
+      {/* Ambient Grid Background */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(0,255,159,0.12),rgba(255,255,255,0))] pointer-events-none" />
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
 
       <AnimatePresence mode="wait">
-        {/* ── PHASE 1: Loading Screen (Logo 2s + terminal slide out) ── */}
-        {phase === "loading" && (
-          <motion.div
-            key="loading"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4 }}
-            className="flex flex-col items-center justify-center text-center z-10"
-          >
-            <div className="flex items-center gap-4">
-              <motion.img
-                src="/logo.svg"
-                alt="CroxCom Logo"
-                initial={{ scale: 0.8, rotate: -10 }}
-                animate={{ scale: 1.1, rotate: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className="h-20 w-20 shadow-2xl rounded-xl"
-              />
-              <motion.div
-                initial={{ width: 0, opacity: 0 }}
-                animate={{ width: "auto", opacity: 1 }}
-                transition={{ delay: 1.2, duration: 0.8, ease: "easeInOut" }}
-                className="overflow-hidden whitespace-nowrap font-mono text-3xl font-bold tracking-tight text-foreground flex items-center"
-              >
-                <span className="text-muted-foreground mr-1">{">"}</span>
-                croxcom
-                <span className="text-primary animate-pulse">_</span>
-              </motion.div>
-            </div>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.8 }}
-              className="mt-6 font-mono text-xs text-muted-foreground tracking-widest uppercase"
-            >
-              initializing developer environment...
-            </motion.p>
-          </motion.div>
-        )}
-
-        {/* ── PHASE 2: Login / Sign up Screen ── */}
+        {/* ── PHASE 1: Sign-In Screen ── */}
         {phase === "login" && (
           <motion.div
             key="login"
@@ -226,150 +255,140 @@ function AuthPage() {
             transition={{ duration: 0.3 }}
             className="w-full max-w-md rounded-xl border border-border/80 bg-card/70 p-6 sm:p-8 shadow-2xl backdrop-blur-md z-10"
           >
-            <div className="flex items-center justify-between mb-6">
-              <Logo size="lg" />
-              <span className="font-mono text-xs border border-primary/30 bg-primary/10 text-primary px-2 py-0.5 rounded">
-                v0.1.0
-              </span>
+            <div className="flex items-center gap-2 font-mono text-xs text-primary mb-2 font-semibold">
+              <Terminal className="h-4 w-4" />
+              <span>$ croxcom --authenticate</span>
             </div>
 
-            <div className="mb-6">
-              <h1 className="text-xl font-semibold text-foreground">Welcome to CroxCom</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                The terminal-inspired community for AI developers.
-              </p>
-            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              Welcome to CroxCom
+            </h1>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Sign in to share updates, discover models, and connect with AI developers.
+            </p>
 
-            {/* Social OAuth Providers */}
-            <div className="space-y-2.5 mb-4">
+            {/* Social Logins */}
+            <div className="mt-6 grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={handleGithubLogin}
-                className="w-full flex items-center justify-center gap-2.5 rounded-lg border border-border bg-background py-2.5 px-4 font-mono text-sm font-medium text-foreground transition-all hover:border-primary hover:bg-accent/40 cursor-pointer shadow-sm"
+                className="flex items-center justify-center gap-2 rounded-lg border border-border bg-background/80 py-2.5 px-4 font-mono text-xs font-medium text-foreground transition-all hover:border-primary/60 hover:bg-accent/40 cursor-pointer shadow-sm"
               >
                 <Github className="h-4 w-4" />
-                <span>Continue with GitHub</span>
+                <span>GitHub</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleGoogleLogin}
-                className="w-full flex items-center justify-center gap-2.5 rounded-lg border border-border bg-background py-2.5 px-4 font-mono text-sm font-medium text-foreground transition-all hover:border-primary hover:bg-accent/40 cursor-pointer shadow-sm"
+                className="flex items-center justify-center gap-2 rounded-lg border border-border bg-background/80 py-2.5 px-4 font-mono text-xs font-medium text-foreground transition-all hover:border-primary/60 hover:bg-accent/40 cursor-pointer shadow-sm"
               >
-                <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
+                <svg className="h-4 w-4" viewBox="0 0 24 24">
                   <path
-                    fill="#4285F4"
+                    fill="currentColor"
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                   />
                   <path
-                    fill="#34A853"
+                    fill="currentColor"
                     d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
                   />
                   <path
-                    fill="#FBBC05"
+                    fill="currentColor"
                     d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
                   />
                   <path
-                    fill="#EA4335"
+                    fill="currentColor"
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                   />
                 </svg>
-                <span>Continue with Google</span>
+                <span>Google</span>
               </button>
             </div>
 
-            <div className="relative flex items-center justify-center my-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border/70" />
-              </div>
-              <span className="relative bg-card px-3 font-mono text-xs text-muted-foreground uppercase">
-                or email
+            <div className="my-5 flex items-center gap-3">
+              <div className="h-px flex-1 bg-border/60" />
+              <span className="font-mono text-[10px] uppercase text-muted-foreground/60">
+                Or Magic Link
               </span>
+              <div className="h-px flex-1 bg-border/60" />
             </div>
 
-            {/* Email Form */}
+            {/* Email Magic Link Form */}
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>
-                <label className="block font-mono text-xs text-muted-foreground mb-1.5">
+                <label className="block font-mono text-xs text-muted-foreground mb-1">
                   Developer Email
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground/60" />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="ada@voxel.ai"
-                    className="w-full rounded-lg border border-border bg-background/80 pl-9 pr-3 py-2 font-mono text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                    placeholder="dev@company.com"
+                    className="w-full rounded-lg border border-border/80 bg-background/80 pl-9 pr-3 py-2.5 font-mono text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
                   />
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-2.5 px-4 font-mono text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 cursor-pointer shadow-md"
+                className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-3 px-4 font-mono text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 cursor-pointer shadow-md"
               >
-                <span>Continue</span>
+                <span>Send Magic Link</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
             </form>
+          </motion.div>
+        )}
 
-            <p className="mt-6 text-center font-mono text-xs text-muted-foreground/70">
-              By signing in, you agree to our Code of Conduct & Privacy rules.
+        {/* ── PHASE 2: Check Inbox ── */}
+        {phase === "check-inbox" && (
+          <motion.div
+            key="check-inbox"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="w-full max-w-md rounded-xl border border-border/80 bg-card/70 p-6 sm:p-8 shadow-2xl backdrop-blur-md z-10 text-center"
+          >
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary border border-primary/30">
+              <Mail className="h-6 w-6" />
+            </div>
+            <h2 className="text-xl font-bold text-foreground">Check Your Inbox</h2>
+            <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
+              We sent a magic sign-in link to <span className="text-foreground font-mono font-semibold">{email}</span>. Click the link to complete authentication.
+            </p>
+            <button
+              type="button"
+              onClick={() => setPhase("login")}
+              className="mt-6 font-mono text-xs text-primary hover:underline cursor-pointer"
+            >
+              ← Back to sign in
+            </button>
+          </motion.div>
+        )}
+
+        {/* ── PHASE 2B: Awaiting OAuth Redirect ── */}
+        {phase === "awaiting-redirect" && (
+          <motion.div
+            key="awaiting-redirect"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="w-full max-w-md rounded-xl border border-border/80 bg-card/70 p-6 sm:p-8 shadow-2xl backdrop-blur-md z-10 text-center"
+          >
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary border border-primary/30 animate-pulse">
+              <Sparkles className="h-6 w-6" />
+            </div>
+            <h2 className="text-xl font-bold text-foreground">Redirecting to Provider...</h2>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Connecting with provider authentication window.
             </p>
           </motion.div>
         )}
 
-        {/* ── PHASE: Check Inbox Screen ── */}
-        {phase === "check-inbox" && (
-          <motion.div
-            key="check-inbox"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="flex min-h-screen items-center justify-center bg-background p-4"
-          >
-            <div className="w-full max-w-md space-y-6 text-center z-10">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                <Mail className="h-8 w-8 text-primary" />
-              </div>
-              <h2 className="text-2xl font-bold text-foreground">Check your inbox</h2>
-              <p className="text-muted-foreground">
-                We sent a magic link to <span className="font-medium text-foreground">{email}</span>.
-                Click the link in your email to sign in.
-              </p>
-              <button
-                type="button"
-                onClick={() => setPhase("login")}
-                className="text-sm text-primary hover:underline cursor-pointer"
-              >
-                ← Back to login
-              </button>
-            </div>
-          </motion.div>
-        )}
-
-        {/* ── PHASE: Awaiting Redirect Screen ── */}
-        {phase === "awaiting-redirect" && (
-          <motion.div
-            key="awaiting-redirect"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="flex min-h-screen items-center justify-center bg-background p-4"
-          >
-            <div className="w-full max-w-md space-y-6 text-center z-10">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 animate-pulse">
-                <Sparkles className="h-8 w-8 text-primary" />
-              </div>
-              <h2 className="text-2xl font-bold text-foreground">Redirecting...</h2>
-              <p className="text-muted-foreground">Taking you to the authentication provider.</p>
-            </div>
-          </motion.div>
-        )}
-
-        {/* ── PHASE 3: Onboarding Screen ── */}
+        {/* ── PHASE 3: Streamlined Onboarding Screen ── */}
         {phase === "onboarding" && (
           <motion.div
             key="onboarding"
@@ -377,74 +396,98 @@ function AuthPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="w-full max-w-lg rounded-xl border border-border/80 bg-card/70 p-6 sm:p-8 shadow-2xl backdrop-blur-md z-10"
+            className="w-full max-w-lg rounded-xl border border-border/80 bg-card/70 p-6 sm:p-8 shadow-2xl backdrop-blur-md z-10 max-h-[90vh] overflow-y-auto scrollbar-none"
           >
             <div className="flex items-center justify-between mb-4 border-b border-border/60 pb-3">
               <div className="flex items-center gap-2 font-mono text-xs text-primary font-semibold">
                 <Terminal className="h-4 w-4" />
                 <span>$ croxcom --setup-profile</span>
               </div>
-              <span className="font-mono text-xs text-primary font-semibold">Profile Setup</span>
+              {/* Quick 1-Click Skip Option */}
+              <button
+                type="button"
+                onClick={handleSkipOnboarding}
+                className="font-mono text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer underline decoration-dotted underline-offset-4"
+              >
+                Skip for now →
+              </button>
             </div>
 
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-foreground">
-                Complete Your Developer Profile
+                Developer Profile Setup
               </h2>
               <p className="text-xs text-muted-foreground">
-                Set your public display name, unique handle, and developer stack.
+                Pre-filled from your account. Customize or click finish to enter immediately.
               </p>
             </div>
 
             <form onSubmit={handleOnboardingSubmit} className="space-y-5">
-              {/* Step 1: Display Name & Unique Handle */}
+              {/* Identity Section: Editable Display Name & Handle with Real-Time Checker */}
               <div className="rounded-lg border border-border/80 bg-background/50 p-3.5 space-y-3">
                 <label className="block font-mono text-xs text-primary font-bold uppercase tracking-wider">
-                  1. Your Public Identity
+                  Public Identity
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block font-mono text-[11px] text-muted-foreground mb-1">
-                      Display Name <span className="text-primary">*</span>
+                      Display Name
                     </label>
                     <input
                       type="text"
-                      required
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
                       placeholder="e.g. Alex Rivera"
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm text-foreground focus:border-primary focus:outline-none"
                     />
                   </div>
+
                   <div>
-                    <label className="block font-mono text-[11px] text-muted-foreground mb-1">
-                      Unique Handle (@username) <span className="text-primary">*</span>
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block font-mono text-[11px] text-muted-foreground">
+                        Handle (@username)
+                      </label>
+                      {/* Handle Availability Feedback */}
+                      {isCheckingHandle ? (
+                        <span className="font-mono text-[10px] text-muted-foreground">checking...</span>
+                      ) : isHandleAvailable === true ? (
+                        <span className="font-mono text-[10px] text-emerald-400 flex items-center gap-1">
+                          <Check className="h-3 w-3" /> available
+                        </span>
+                      ) : isHandleAvailable === false ? (
+                        <span className="font-mono text-[10px] text-destructive flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" /> taken
+                        </span>
+                      ) : null}
+                    </div>
+
                     <div className="relative">
                       <span className="absolute left-3 top-2 font-mono text-sm text-muted-foreground">
                         @
                       </span>
                       <input
                         type="text"
-                        required
                         value={userHandle}
                         onChange={(e) =>
                           setUserHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))
                         }
                         placeholder="alex_rivera"
-                        className="w-full rounded-lg border border-border bg-background pl-7 pr-3 py-2 font-mono text-sm text-foreground focus:border-primary focus:outline-none"
+                        className={`w-full rounded-lg border bg-background pl-7 pr-3 py-2 font-mono text-sm text-foreground focus:outline-none ${
+                          isHandleAvailable === false
+                            ? "border-destructive focus:border-destructive"
+                            : "border-border focus:border-primary"
+                        }`}
                       />
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Tools Selection */}
+              {/* Tools & AI Stack Selection (Optional) */}
               <div>
                 <label className="block font-mono text-xs text-muted-foreground mb-2">
-                  1. Tools & Frameworks You Use
+                  Tools & AI Stack You Use <span className="text-[10px] text-muted-foreground/60">(Optional)</span>
                 </label>
-
                 <div className="flex flex-wrap gap-2">
                   {TOOLS_LIST.map((tool) => {
                     const active = selectedTools.includes(tool);
@@ -467,10 +510,10 @@ function AuthPage() {
                 </div>
               </div>
 
-              {/* Interests Selection */}
+              {/* Primary AI Use Cases (Optional) */}
               <div>
                 <label className="block font-mono text-xs text-muted-foreground mb-2">
-                  2. Primary AI Interests
+                  Primary AI Use Cases <span className="text-[10px] text-muted-foreground/60">(Optional)</span>
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {INTERESTS_LIST.map((interest) => {
@@ -496,10 +539,10 @@ function AuthPage() {
                 </div>
               </div>
 
-              {/* Dev Position: Solo or Team */}
+              {/* Dev Position: Solo or Team / Lab */}
               <div>
                 <label className="block font-mono text-xs text-muted-foreground mb-2">
-                  3. Developer Position
+                  Developer Setup <span className="text-[10px] text-muted-foreground/60">(Optional)</span>
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
@@ -530,33 +573,77 @@ function AuthPage() {
                 </div>
               </div>
 
-              {/* Conditional Role input if Team */}
+              {/* Conditional Team Details (Company/Team Name & Editable Role) */}
               {devPosition === "Team" && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
+                  className="space-y-3 rounded-lg border border-border/80 bg-background/40 p-3"
                 >
-                  <label className="block font-mono text-xs text-muted-foreground mb-1">
-                    Your Role in Team
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={teamRole}
-                    onChange={(e) => setTeamRole(e.target.value)}
-                    placeholder="e.g. Senior ML Engineer, Researcher"
-                    className="w-full rounded-lg border border-border bg-background/80 px-3 py-2 font-mono text-sm text-foreground focus:border-primary focus:outline-none"
-                  />
+                  <div>
+                    <label className="block font-mono text-[11px] text-muted-foreground mb-1 flex items-center gap-1">
+                      <Building2 className="h-3 w-3 text-primary" /> Company or Team Name
+                    </label>
+                    <input
+                      type="text"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      placeholder="e.g. Acme AI Labs / Vibe Studio"
+                      className="w-full rounded-lg border border-border bg-background px-3 py-1.5 font-mono text-xs text-foreground focus:border-primary focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-mono text-[11px] text-muted-foreground mb-1">
+                      Your Role in Team
+                    </label>
+                    <input
+                      type="text"
+                      value={teamRole}
+                      onChange={(e) => setTeamRole(e.target.value)}
+                      placeholder="e.g. Senior ML Engineer"
+                      className="w-full rounded-lg border border-border bg-background px-3 py-1.5 font-mono text-xs text-foreground focus:border-primary focus:outline-none mb-2"
+                    />
+                    {/* Role Suggestions Badges */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {ROLE_SUGGESTIONS.map((sug) => (
+                        <button
+                          key={sug}
+                          type="button"
+                          onClick={() => setTeamRole(sug)}
+                          className={`font-mono text-[10px] rounded px-2 py-0.5 border cursor-pointer transition-colors ${
+                            teamRole === sug
+                              ? "border-primary text-primary bg-primary/10"
+                              : "border-border/60 text-muted-foreground hover:border-primary/40"
+                          }`}
+                        >
+                          {sug}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </motion.div>
               )}
 
-              <button
-                type="submit"
-                className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-3 px-4 font-mono text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 cursor-pointer shadow-md mt-6"
-              >
-                <Sparkles className="h-4 w-4" />
-                <span>Complete Setup & Enter CroxCom</span>
-              </button>
+              {/* Submit / Finish Button */}
+              <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                <button
+                  type="submit"
+                  disabled={isHandleAvailable === false}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary py-3 px-4 font-mono text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span>Finish Setup & Enter Feed</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSkipOnboarding}
+                  className="sm:w-auto px-4 py-3 font-mono text-xs text-muted-foreground hover:text-foreground border border-border/70 rounded-lg bg-background/50 hover:bg-accent/40 transition-colors cursor-pointer"
+                >
+                  Skip
+                </button>
+              </div>
             </form>
           </motion.div>
         )}

@@ -17,6 +17,7 @@ export type OnboardingDetails = {
   interests: string[];
   devPosition: "Solo" | "Team";
   teamRole?: string;
+  companyName?: string;
 };
 
 interface AuthContextType {
@@ -241,6 +242,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role: updated.role,
         bio: currentUser.bio || "",
         onboarding_completed: true,
+        company_name: details.companyName,
         preferences: details.preferences,
         tools: details.tools,
         interests: details.interests,

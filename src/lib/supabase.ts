@@ -111,6 +111,24 @@ export async function fetchProfileByHandle(handleOrId: string) {
 }
 
 /**
+ * Check if a handle is available in Supabase profiles
+ */
+export async function checkHandleAvailableSupabase(handle: string, currentUserId?: string) {
+  if (!isSupabaseConfigured || !handle.trim()) return true;
+  const clean = handle.trim().toLowerCase().replace(/^@/, "");
+  if (!clean) return true;
+  const { data } = await supabase
+    .from("profiles")
+    .select("id")
+    .ilike("handle", clean)
+    .maybeSingle();
+
+  if (!data) return true;
+  if (currentUserId && data.id === currentUserId) return true;
+  return false;
+}
+
+/**
  * Follow / Unfollow User in Supabase
  */
 export async function followUserSupabase(followerId: string, followedId: string) {
