@@ -7,7 +7,7 @@ import { MessageInput } from "@/components/messages/MessageInput";
 import { mockConversations, mockUsers, type MockUser, type MockConversation } from "@/data/mock";
 import { Search, X, MessageSquarePlus } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
-import { subscribeToMessages, sendMessageSupabase, isSupabaseConfigured, createConversationSupabase, fetchConversationsSupabase } from "@/lib/supabase";
+import { subscribeToMessages, sendMessageSupabase, isSupabaseConfigured, createConversationSupabase, fetchConversationsSupabase, searchUsersSupabase } from "@/lib/supabase";
 import { SHOW_DEMO_DATA } from "@/lib/config";
 
 export const Route = createFileRoute("/messages")({
@@ -159,17 +159,35 @@ function MessagesPage() {
     setSearchQuery("");
   };
 
-  const filteredUsers = SHOW_DEMO_DATA
-    ? mockUsers.slice(1).filter((u) => {
-        const q = searchQuery.toLowerCase().trim();
-        if (!q) return true;
-        return (
-          u.name.toLowerCase().includes(q) ||
-          u.handle.toLowerCase().includes(q) ||
-          u.role?.toLowerCase().includes(q)
-        );
-      })
-    : [];
+  const [supabaseUsers, setSupabaseUsers] = useState<MockUser[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (isSupabaseConfigured && searchQuery.trim()) {
+      searchUsersSupabase(searchQuery).then((results) => {
+        if (isMounted) setSupabaseUsers(results);
+      });
+    } else {
+      setSupabaseUsers([]);
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [searchQuery]);
+
+  const filteredUsers = isSupabaseConfigured
+    ? supabaseUsers.filter((u) => u.id !== currentUser.id)
+    : SHOW_DEMO_DATA
+      ? mockUsers.slice(1).filter((u) => {
+          const q = searchQuery.toLowerCase().trim();
+          if (!q) return true;
+          return (
+            u.name.toLowerCase().includes(q) ||
+            u.handle.toLowerCase().includes(q) ||
+            u.role?.toLowerCase().includes(q)
+          );
+        })
+      : [];
 
   return (
     <AppShell>

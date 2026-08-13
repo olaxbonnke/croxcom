@@ -6,6 +6,14 @@ import { usePosts } from "@/hooks/usePosts";
 import { useAuth } from "@/lib/AuthContext";
 import { SHOW_DEMO_DATA } from "@/lib/config";
 
+import {
+  isSupabaseConfigured,
+  followUserSupabase,
+  unfollowUserSupabase,
+  fetchIsFollowingSupabase,
+  fetchFollowCountsSupabase,
+} from "@/lib/supabase";
+
 interface ProfileHeaderProps {
   user: MockUser;
   isCurrentUser?: boolean;
@@ -27,11 +35,12 @@ export function ProfileHeader({
   isCurrentUser,
   onUpdateUser,
 }: ProfileHeaderProps) {
-  const { updateUser } = useAuth();
+  const { currentUser, updateUser } = useAuth();
   const { posts } = usePosts();
 
   const [user, setUser] = useState<MockUser>(initialUser);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [counts, setCounts] = useState({ followers: initialUser.followers ?? 0, following: initialUser.following ?? 0 });
   const [showEditModal, setShowEditModal] = useState(false);
 
   // User list modal state (Followers vs Following)
@@ -63,7 +72,35 @@ export function ProfileHeader({
     setAvatarColor(initialUser.avatarColor || "#00ff9f");
     setAvatar(initialUser.avatar || "");
     setBanner(initialUser.banner || "");
-  }, [initialUser]);
+
+    // Fetch initial follow state and counts from Supabase
+    if (isSupabaseConfigured && currentUser?.id && initialUser?.id && !isCurrentUser) {
+      fetchIsFollowingSupabase(currentUser.id, initialUser.id).then(setIsFollowing);
+      fetchFollowCountsSupabase(initialUser.id).then((c) => {
+        setCounts({ followers: c.followers, following: c.following });
+      });
+    } else if (isSupabaseConfigured && initialUser?.id) {
+      fetchFollowCountsSupabase(initialUser.id).then((c) => {
+        setCounts({ followers: c.followers, following: c.following });
+      });
+    }
+  }, [initialUser, currentUser?.id, isCurrentUser]);
+
+  const handleToggleFollow = async () => {
+    if (isFollowing) {
+      setIsFollowing(false);
+      setCounts((prev) => ({ ...prev, followers: Math.max(0, prev.followers - 1) }));
+      if (isSupabaseConfigured && currentUser?.id && user?.id) {
+        await unfollowUserSupabase(currentUser.id, user.id);
+      }
+    } else {
+      setIsFollowing(true);
+      setCounts((prev) => ({ ...prev, followers: prev.followers + 1 }));
+      if (isSupabaseConfigured && currentUser?.id && user?.id) {
+        await followUserSupabase(currentUser.id, user.id);
+      }
+    }
+  };
 
   const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -170,7 +207,7 @@ export function ProfileHeader({
               </button>
             ) : (
               <button
-                onClick={() => setIsFollowing((prev) => !prev)}
+                onClick={handleToggleFollow}
                 className={`font-mono text-sm rounded-md px-4 py-1.5 transition-all cursor-pointer shadow-sm ${
                   isFollowing
                     ? "border border-border bg-background text-foreground hover:border-destructive hover:text-destructive"
@@ -213,7 +250,7 @@ export function ProfileHeader({
             className="flex items-center gap-1 hover:text-primary transition-colors cursor-pointer group"
           >
             <span className="text-foreground font-bold text-sm group-hover:text-primary">
-              {((user.followers ?? 0) + (isFollowing ? 1 : 0)).toLocaleString()}
+              {counts.followers.toLocaleString()}
             </span>{" "}
             <span className="underline decoration-dotted underline-offset-4">followers</span>
           </button>
@@ -223,7 +260,7 @@ export function ProfileHeader({
             className="flex items-center gap-1 hover:text-primary transition-colors cursor-pointer group"
           >
             <span className="text-foreground font-bold text-sm group-hover:text-primary">
-              {(user.following ?? 0).toLocaleString()}
+              {counts.following.toLocaleString()}
             </span>{" "}
             <span className="underline decoration-dotted underline-offset-4">following</span>
           </button>

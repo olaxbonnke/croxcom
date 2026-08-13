@@ -1,14 +1,29 @@
 import { Link } from "@tanstack/react-router";
 import { MockCommunity } from "@/data/mock";
+import { useCommunities } from "@/lib/CommunityContext";
 
 export function CommunityCard({ community }: { community: MockCommunity }) {
+  const { isMember, joinCommunity, leaveCommunity } = useCommunities();
+  const joined = isMember(community.id);
+  const memberCount = community.members + (joined ? 1 : 0);
+
+  const handleToggleJoin = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (joined) {
+      leaveCommunity(community.id);
+    } else {
+      joinCommunity(community.id);
+    }
+  };
+
   return (
     <Link to={"/communities/" + community.slug} className="block group">
       <article className="h-full rounded-lg border border-border/70 bg-card/60 backdrop-blur-sm p-4 hover:border-primary/40 transition-colors group-hover:bg-card flex flex-col">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-mono text-sm text-foreground">/{community.name}</h3>
           <span className="font-mono text-xs text-muted-foreground shrink-0">
-            {community.members.toLocaleString()} members
+            {memberCount.toLocaleString()} members
           </span>
         </div>
 
@@ -29,8 +44,15 @@ export function CommunityCard({ community }: { community: MockCommunity }) {
           </div>
         )}
 
-        <button className="mt-3 w-full border border-border font-mono text-xs text-foreground rounded-md py-1.5 group-hover:border-primary group-hover:text-primary transition-colors text-center">
-          Join
+        <button
+          onClick={handleToggleJoin}
+          className={`mt-3 w-full border font-mono text-xs rounded-md py-1.5 transition-colors text-center cursor-pointer ${
+            joined
+              ? "border-border bg-card text-muted-foreground hover:border-destructive hover:text-destructive"
+              : "border-primary/40 text-primary hover:border-primary hover:bg-primary/10"
+          }`}
+        >
+          {joined ? "Leave" : "Join"}
         </button>
       </article>
     </Link>

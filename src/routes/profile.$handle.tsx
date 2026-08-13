@@ -4,12 +4,15 @@ import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { PostCard } from "@/components/feed/PostCard";
 import { CommentCard } from "@/components/feed/CommentCard";
 import { GallerySection } from "@/components/profile/GallerySection";
-import { mockUsers, mockComments } from "@/data/mock";
+import { mockUsers, mockComments, type MockUser } from "@/data/mock";
 import { ArrowLeft, Repeat2 } from "lucide-react";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePosts } from "@/hooks/usePosts";
 import { SHOW_DEMO_DATA } from "@/lib/config";
+
+import { fetchProfileByHandle, isSupabaseConfigured } from "@/lib/supabase";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/profile/$handle")({
   component: UserProfilePage,
@@ -26,15 +29,105 @@ function UserProfilePage() {
 export function UserProfileView({ handle: propHandle }: { handle?: string }) {
   const params = Route.useParams();
   const navigate = useNavigate();
+  const rawHandle = propHandle || (params as Record<string, string>)?.handle || "";
+  const cleanHandle = rawHandle.replace(/^@/, "");
 
-  const handle = propHandle || (params as Record<string, string>)?.handle;
-  const user = SHOW_DEMO_DATA ? mockUsers.find((u) => u.handle === handle || u.id === handle) : undefined;
   const { posts } = usePosts();
+  const [profileUser, setProfileUser] = useState<MockUser | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function load() {
+      setLoading(true);
+
+      // 1. Try Supabase
+      if (isSupabaseConfigured && cleanHandle) {
+        const sbProfile = await fetchProfileByHandle(cleanHandle);
+        if (sbProfile && isMounted) {
+          setProfileUser({
+            id: sbProfile.id,
+            name: sbProfile.name || cleanHandle,
+            handle: sbProfile.handle || cleanHandle,
+            avatar: sbProfile.avatar,
+            avatarColor: "#00ff9f",
+            role: sbProfile.role || "Developer",
+            bio: sbProfile.bio || "",
+            followers: sbProfile.followers ?? 0,
+            following: sbProfile.following ?? 0,
+            posts: sbProfile.posts ?? 0,
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      // 2. Try matching post author in current posts feed
+      const matchedPostAuthor = posts.find(
+        (p) =>
+          p.author.handle?.toLowerCase() === cleanHandle.toLowerCase() ||
+          p.author.id === cleanHandle,
+      )?.author;
+
+      if (matchedPostAuthor && isMounted) {
+        setProfileUser(matchedPostAuthor);
+        setLoading(false);
+        return;
+      }
+
+      // 3. Fallback to mockUsers if demo data enabled
+      if (SHOW_DEMO_DATA) {
+        const mock = mockUsers.find(
+          (u) => u.handle.toLowerCase() === cleanHandle.toLowerCase() || u.id === cleanHandle,
+        );
+        if (mock && isMounted) {
+          setProfileUser(mock);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // 4. Ultimate fallback: valid profile placeholder for any valid handle (never 404)
+      if (isMounted && cleanHandle) {
+        setProfileUser({
+          id: `usr-${cleanHandle}`,
+          name: cleanHandle,
+          handle: cleanHandle,
+          avatarColor: "#00ff9f",
+          role: "Developer",
+          bio: "",
+          followers: 0,
+          following: 0,
+          posts: 0,
+        });
+      }
+      if (isMounted) setLoading(false);
+    }
+    load();
+    return () => {
+      isMounted = false;
+    };
+  }, [cleanHandle, posts]);
+
+  const user = profileUser;
   const userPosts = user
     ? posts.filter((p) => p.author.id === user.id || p.author.handle === user.handle)
     : [];
 
   const [activeTab, setActiveTab] = useState<Tab>("Posts");
+
+  if (loading) {
+    return (
+      <AppShell>
+        <div className="flex min-h-[50vh] items-center justify-center font-mono text-xs text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <span>Loading profile...</span>
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
 
   if (!user) {
     return (

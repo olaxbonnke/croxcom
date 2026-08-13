@@ -130,9 +130,15 @@ export function MorePage() {
         <SettingsRow
           icon={<User className="h-4 w-4 text-muted-foreground" />}
           label="Account information"
-          description="Username, email, phone number"
-          onClick={() => navigate({ to: "/profile" })}
-        />
+          description="View your username, handle, role, and account ID"
+        >
+          <div className="mt-2 space-y-1.5 pl-7 font-mono text-xs text-muted-foreground">
+            <div><span className="text-foreground font-semibold">Name:</span> {currentUser.name}</div>
+            <div><span className="text-foreground font-semibold">Handle:</span> @{currentUser.handle}</div>
+            <div><span className="text-foreground font-semibold">Role:</span> {currentUser.role || "Developer"}</div>
+            <div><span className="text-foreground font-semibold">Account ID:</span> <span className="text-[10px] opacity-70">{currentUser.id}</span></div>
+          </div>
+        </SettingsRow>
         <SettingsRow
           icon={<Key className="h-4 w-4 text-muted-foreground" />}
           label="Change password"
@@ -420,27 +426,6 @@ export function MorePage() {
           enabled={reducedMotion}
           onToggle={() => setReducedMotion(!reducedMotion)}
         />
-        <SettingsRow
-          icon={<Monitor className="h-4 w-4 text-muted-foreground" />}
-          label="Font size"
-          description="Adjust text size for readability"
-        >
-          <div className="mt-2 pl-7 flex gap-2">
-            {(["default", "large", "xl"] as const).map((size) => (
-              <button
-                key={size}
-                onClick={() => setFontSize(size)}
-                className={`rounded-md border px-3 py-1 font-mono text-xs transition-colors cursor-pointer ${
-                  fontSize === size
-                    ? "border-primary text-primary bg-primary/10"
-                    : "border-border text-muted-foreground hover:border-primary/40"
-                }`}
-              >
-                {size === "default" ? "A" : size === "large" ? "A+" : "A++"}
-              </button>
-            ))}
-          </div>
-        </SettingsRow>
       </SettingsSection>
 
       {/* ─── 7. HELP CENTER ─── */}

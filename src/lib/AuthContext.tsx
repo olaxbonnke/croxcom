@@ -21,6 +21,7 @@ export type OnboardingDetails = {
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  isLoadingAuth: boolean;
   hasCompletedOnboarding: boolean;
   currentUser: MockUser;
   onboardingDetails?: OnboardingDetails;
@@ -102,9 +103,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     currentUserRef.current = currentUser;
   }, [currentUser]);
 
+  const [isLoadingAuth, setIsLoadingAuth] = useState<boolean>(true);
+
   // Supabase auth state listener
   useEffect(() => {
-    if (!isSupabaseConfigured) return;
+    if (!isSupabaseConfigured) {
+      setIsLoadingAuth(false);
+      return;
+    }
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
@@ -135,19 +141,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setCurrentUser(updatedUser);
         localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(updatedUser));
 
-        // If user already has a saved profile handle in Supabase, mark onboarding as completed
-        if (profile?.handle) {
-          setHasCompletedOnboarding(true);
-        }
+        // Mark onboarding as completed ONLY if explicitly saved in profile or local state
+        const isCompleted = Boolean(profile?.onboarding_completed);
+        setHasCompletedOnboarding(isCompleted);
+        setIsLoadingAuth(false);
       } else if (event === "SIGNED_OUT") {
         setIsAuthenticated(false);
         setHasCompletedOnboarding(false);
+        setIsLoadingAuth(false);
         localStorage.removeItem(AUTH_STORAGE_KEY);
         localStorage.removeItem(USER_PROFILE_KEY);
+      } else {
+        setIsLoadingAuth(false);
       }
     });
 
+    // Fallback safety timeout if auth listener takes too long
+    const timer = setTimeout(() => {
+      setIsLoadingAuth(false);
+    }, 1500);
+
     return () => {
+      clearTimeout(timer);
       authListener.subscription.unsubscribe();
     };
   }, []);
@@ -211,23 +226,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const completeOnboarding = (details: OnboardingDetails) => {
     setOnboardingDetails(details);
     setHasCompletedOnboarding(true);
-    if (details.teamRole) {
-      const updated = { ...currentUser, role: details.teamRole };
-      setCurrentUser(updated);
-      localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(updated));
+    const updated = {
+      ...currentUser,
+      role: details.teamRole || details.devPosition || currentUser.role,
+    };
+    setCurrentUser(updated);
+    localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(updated));
 
-      if (isSupabaseConfigured && currentUser.id) {
-        upsertProfile({
-          id: currentUser.id,
-          name: currentUser.name,
-          handle: currentUser.handle,
-          role: details.teamRole,
-          preferences: details.preferences,
-          tools: details.tools,
-          interests: details.interests,
-          dev_position: details.devPosition,
-        });
-      }
+    if (isSupabaseConfigured && currentUser.id) {
+      upsertProfile({
+        id: currentUser.id,
+        name: currentUser.name,
+        handle: currentUser.handle,
+        role: updated.role,
+        bio: currentUser.bio || "",
+        onboarding_completed: true,
+        preferences: details.preferences,
+        tools: details.tools,
+        interests: details.interests,
+        dev_position: details.devPosition,
+      });
     }
   };
 
@@ -241,6 +259,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: currentUser.id,
           name: newProfile.name,
           handle: newProfile.handle,
+          avatar: newProfile.avatar,
           bio: newProfile.bio,
           role: newProfile.role,
         });
@@ -250,12 +269,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const isRealUser = isAuthenticated && currentUser.id !== "user-new" && currentUser.id !== "demo-user-id";
-
   return (
     <AuthContext.Provider
       value={{
         isAuthenticated,
+        isLoadingAuth,
         hasCompletedOnboarding,
         currentUser,
         onboardingDetails,
@@ -263,7 +281,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
         completeOnboarding,
         updateUser,
-        isRealUser,
+        isRealUser: currentUser.id !== "user-new",
       }}
     >
       {children}

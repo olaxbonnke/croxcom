@@ -127,20 +127,12 @@ function AuthPage() {
     }
   };
 
-  // Transition to onboarding ONLY when returning from an auth callback (OAuth/magic link) or after active login submission
+  // Transition to onboarding phase for any authenticated user who has not completed onboarding
   useEffect(() => {
-    const isCallback =
-      typeof window !== "undefined" &&
-      (window.location.hash.includes("access_token") || window.location.search.includes("code"));
-
-    if (
-      isAuthenticated &&
-      !hasCompletedOnboarding &&
-      (isCallback || phase === "check-inbox" || phase === "awaiting-redirect")
-    ) {
+    if (isAuthenticated && !hasCompletedOnboarding) {
       setPhase("onboarding");
     }
-  }, [isAuthenticated, hasCompletedOnboarding, phase]);
+  }, [isAuthenticated, hasCompletedOnboarding]);
 
   const handleOnboardingSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AppShell } from "@/components/layout/AppShell";
@@ -49,10 +49,32 @@ export const Route = createFileRoute("/")({
 });
 
 function RootRoute() {
-  const { isAuthenticated, hasCompletedOnboarding } = useAuth();
+  const { isAuthenticated, hasCompletedOnboarding, isLoadingAuth } = useAuth();
+  const navigate = useNavigate();
 
-  if (!isAuthenticated || !hasCompletedOnboarding) {
+  useEffect(() => {
+    if (!isLoadingAuth && isAuthenticated && !hasCompletedOnboarding) {
+      navigate({ to: "/auth", replace: true });
+    }
+  }, [isLoadingAuth, isAuthenticated, hasCompletedOnboarding, navigate]);
+
+  if (isLoadingAuth) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center font-mono text-xs text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <span>Connecting to CroxCom...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
     return <LandingPage />;
+  }
+
+  if (!hasCompletedOnboarding) {
+    return null;
   }
 
   return <FeedPage />;

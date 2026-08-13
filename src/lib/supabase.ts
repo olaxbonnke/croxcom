@@ -85,6 +85,112 @@ export async function fetchProfile(userId: string) {
 }
 
 /**
+ * Fetch User Profile by handle or ID from Supabase
+ */
+export async function fetchProfileByHandle(handleOrId: string) {
+  if (!isSupabaseConfigured) return null;
+  const clean = handleOrId.replace(/^@/, "");
+
+  // Try matching handle first
+  const { data: byHandle } = await supabase
+    .from("profiles")
+    .select("*")
+    .ilike("handle", clean)
+    .maybeSingle();
+
+  if (byHandle) return byHandle;
+
+  // Try matching ID
+  const { data: byId } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", handleOrId)
+    .maybeSingle();
+
+  return byId || null;
+}
+
+/**
+ * Follow / Unfollow User in Supabase
+ */
+export async function followUserSupabase(followerId: string, followedId: string) {
+  if (!isSupabaseConfigured) return false;
+  const { error } = await supabase
+    .from("follows")
+    .insert({ follower_id: followerId, followed_id: followedId });
+  if (error) console.error("Error following user:", error);
+  return !error;
+}
+
+export async function unfollowUserSupabase(followerId: string, followedId: string) {
+  if (!isSupabaseConfigured) return false;
+  const { error } = await supabase
+    .from("follows")
+    .delete()
+    .eq("follower_id", followerId)
+    .eq("followed_id", followedId);
+  if (error) console.error("Error unfollowing user:", error);
+  return !error;
+}
+
+export async function fetchIsFollowingSupabase(followerId: string, followedId: string) {
+  if (!isSupabaseConfigured) return false;
+  const { data } = await supabase
+    .from("follows")
+    .select("*")
+    .eq("follower_id", followerId)
+    .eq("followed_id", followedId)
+    .maybeSingle();
+  return Boolean(data);
+}
+
+export async function fetchFollowCountsSupabase(userId: string) {
+  if (!isSupabaseConfigured) return { followers: 0, following: 0 };
+  const { count: followers } = await supabase
+    .from("follows")
+    .select("*", { count: "exact", head: true })
+    .eq("followed_id", userId);
+  const { count: following } = await supabase
+    .from("follows")
+    .select("*", { count: "exact", head: true })
+    .eq("follower_id", userId);
+  return { followers: followers || 0, following: following || 0 };
+}
+
+/**
+ * Delete Post from Supabase
+ */
+export async function deletePostSupabase(postId: string) {
+  if (!isSupabaseConfigured) return false;
+  const { error } = await supabase.from("posts").delete().eq("id", postId);
+  if (error) console.error("Error deleting post from Supabase:", error);
+  return !error;
+}
+
+/**
+ * Search Users/Profiles in Supabase
+ */
+export async function searchUsersSupabase(query: string) {
+  if (!isSupabaseConfigured || !query.trim()) return [];
+  const q = `%${query.trim().replace(/^@/, "")}%`;
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .or(`name.ilike.${q},handle.ilike.${q}`)
+    .limit(10);
+
+  if (error || !data) return [];
+  return data.map((p) => ({
+    id: p.id as string,
+    name: (p.name as string) || "Developer",
+    handle: (p.handle as string) || "dev",
+    avatarColor: "#00ff9f",
+    role: (p.role as string) || "Developer",
+    avatar: p.avatar as string | undefined,
+  }));
+}
+
+/**
  * Upsert User Profile in Supabase
  */
 export async function upsertProfile(profile: Record<string, unknown>) {

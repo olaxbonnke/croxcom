@@ -16,6 +16,7 @@ import {
   fetchLikedPostIdsSupabase,
   createCommentSupabase,
   fetchCommentsSupabase,
+  deletePostSupabase,
 } from "@/lib/supabase";
 import { SHOW_DEMO_DATA } from "@/lib/config";
 import { toast } from "sonner";
@@ -259,6 +260,9 @@ export function PostProvider({ children }: { children: ReactNode }) {
   const deletePost = useCallback((id: string) => {
     setPosts((prev) => prev.filter((p) => p.id !== id));
     setComments((prev) => prev.filter((c) => c.postId !== id));
+    if (isSupabaseConfigured) {
+      deletePostSupabase(id);
+    }
     toast.success("Post deleted");
   }, []);
 

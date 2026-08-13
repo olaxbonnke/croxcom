@@ -119,7 +119,7 @@ function CommunityPage() {
         <div className="mt-3 flex items-center gap-4 flex-wrap font-mono text-xs text-muted-foreground">
           <span>
             <span className="text-foreground font-medium">
-              {community.members.toLocaleString()}
+              {(community.members + (joined ? 1 : 0)).toLocaleString()}
             </span>{" "}
             members
           </span>
@@ -146,7 +146,7 @@ function CommunityPage() {
           className={`mt-4 font-mono text-sm rounded-md px-5 py-2 transition-colors cursor-pointer ${
             joined
               ? "border border-border/70 text-foreground hover:bg-card"
-              : "bg-primary text-primary-foreground hover:opacity-90"
+              : "bg-primary text-primary-foreground hover:opacity-90 font-semibold"
           }`}
         >
           {joined ? "leave" : "join"}
@@ -180,14 +180,26 @@ function CommunityPage() {
       <div className="py-2">
         {activeTab === "Posts" && (
           <div className="flex flex-col">
-            {/* In-community composer */}
-            <div className="border-b border-border/70 bg-card/30">
-              <Composer
-                onSubmit={handleCommunityPost}
-                placeholder={`Post to /${community.name}…`}
-                compact
-              />
-            </div>
+            {/* In-community composer — restricted to members */}
+            {joined ? (
+              <div className="border-b border-border/70 bg-card/30">
+                <Composer
+                  onSubmit={handleCommunityPost}
+                  placeholder={`Post to /${community.name}…`}
+                  compact
+                />
+              </div>
+            ) : (
+              <div className="p-4 border-b border-border/70 bg-card/20 text-center font-mono text-xs text-muted-foreground flex flex-col items-center gap-2">
+                <span>Join /{community.name} to participate and share updates with this community</span>
+                <button
+                  onClick={() => joinCommunity(community.id)}
+                  className="rounded-md bg-primary/10 border border-primary/40 px-3 py-1 text-primary hover:bg-primary/20 transition-colors cursor-pointer"
+                >
+                  + Join community
+                </button>
+              </div>
+            )}
 
             {communityPosts.length > 0 ? (
               <AnimatePresence>
