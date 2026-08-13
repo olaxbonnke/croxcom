@@ -23,6 +23,7 @@ import type { MockPost, PostMedia } from "@/data/mock";
 import { cn } from "@/lib/utils";
 import { useBookmarks } from "@/hooks/useBookmarks";
 import { usePosts } from "@/hooks/usePosts";
+import { toast } from "sonner";
 import { extractUrl, LinkPreviewCard } from "./LinkPreviewCard";
 import { Lightbox } from "./Lightbox";
 import { PostOptionsMenu } from "./PostOptionsMenu";
@@ -184,13 +185,14 @@ export function PostCard({ post }: { post: MockPost }) {
               label="Share"
               icon={<Share2 className="h-[15px] w-[15px]" />}
               onClick={() => {
-                if (navigator.share) {
-                  navigator.share({
-                    title: `Post by ${post.author.name}`,
-                    url: window.location.href,
-                  });
+                const url = window.location.origin + `/posts/${post.id}`;
+                if (navigator.clipboard) {
+                  navigator.clipboard.writeText(url);
+                  toast.success("Post link copied to clipboard!");
+                } else if (navigator.share) {
+                  navigator.share({ title: `Post by ${post.author.name}`, url });
                 } else {
-                  navigator.clipboard.writeText(window.location.origin + `/posts/${post.id}`);
+                  toast.success("Post link copied to clipboard!");
                 }
               }}
             />

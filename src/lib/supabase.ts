@@ -162,20 +162,35 @@ export async function checkHandleAvailableSupabase(handle: string, currentUserId
   return false;
 }
 
+function isUUID(str: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+}
+
+async function resolveUserId(idOrHandle: string): Promise<string | null> {
+  if (!idOrHandle) return null;
+  if (isUUID(idOrHandle)) return idOrHandle;
+  const p = await fetchProfileByHandle(idOrHandle);
+  return p?.id && isUUID(p.id) ? p.id : null;
+}
+
 /**
  * Follow / Unfollow User in Supabase
  */
 export async function followUserSupabase(followerId: string, followedId: string) {
   if (!isSupabaseConfigured) return false;
+  const realFollower = await resolveUserId(followerId);
+  const realFollowed = await resolveUserId(followedId);
+  if (!realFollower || !realFollowed) return false;
+
   const { error } = await supabase
     .from("follows")
-    .insert({ follower_id: followerId, followed_id: followedId });
+    .insert({ follower_id: realFollower, followed_id: realFollowed });
   if (error) console.error("Error following user:", error);
   if (!error) {
     try {
       await supabase.from("notifications").insert({
-        recipient_id: followedId,
-        actor_id: followerId,
+        recipient_id: realFollowed,
+        actor_id: realFollower,
         type: "follow",
         content: "started following you",
       });
@@ -188,36 +203,48 @@ export async function followUserSupabase(followerId: string, followedId: string)
 
 export async function unfollowUserSupabase(followerId: string, followedId: string) {
   if (!isSupabaseConfigured) return false;
+  const realFollower = await resolveUserId(followerId);
+  const realFollowed = await resolveUserId(followedId);
+  if (!realFollower || !realFollowed) return false;
+
   const { error } = await supabase
     .from("follows")
     .delete()
-    .eq("follower_id", followerId)
-    .eq("followed_id", followedId);
+    .eq("follower_id", realFollower)
+    .eq("followed_id", realFollowed);
   if (error) console.error("Error unfollowing user:", error);
   return !error;
 }
 
 export async function fetchIsFollowingSupabase(followerId: string, followedId: string) {
   if (!isSupabaseConfigured) return false;
+  const realFollower = await resolveUserId(followerId);
+  const realFollowed = await resolveUserId(followedId);
+  if (!realFollower || !realFollowed) return false;
+
   const { data } = await supabase
     .from("follows")
     .select("*")
-    .eq("follower_id", followerId)
-    .eq("followed_id", followedId)
+    .eq("follower_id", realFollower)
+    .eq("followed_id", realFollowed)
     .maybeSingle();
   return Boolean(data);
 }
 
 export async function fetchFollowCountsSupabase(userId: string) {
-  if (!isSupabaseConfigured) return { followers: 0, following: 0 };
+  if (!isSupabaseConfigured || !userId) return { followers: 0, following: 0 };
+  const realUser = await resolveUserId(userId);
+  if (!realUser) return { followers: 0, following: 0 };
+
   const { count: followers } = await supabase
     .from("follows")
     .select("*", { count: "exact", head: true })
-    .eq("followed_id", userId);
+    .eq("followed_id", realUser);
   const { count: following } = await supabase
     .from("follows")
     .select("*", { count: "exact", head: true })
-    .eq("follower_id", userId);
+    .eq("follower_id", realUser);
+
   return { followers: followers || 0, following: following || 0 };
 }
 
@@ -229,6 +256,38 @@ export async function deletePostSupabase(postId: string) {
   const { error } = await supabase.from("posts").delete().eq("id", postId);
   if (error) console.error("Error deleting post from Supabase:", error);
   return !error;
+}
+
+/**
+ * Fetch a single post by ID from Supabase
+ */
+export async function fetchPostByIdSupabase(postId: string) {
+  if (!isSupabaseConfigured || !postId) return null;
+  const { data, error } = await supabase
+    .from("posts")
+    .select(`
+      id,
+      content,
+      created_at,
+      author_id,
+      likes_count,
+      reposts_count,
+      comments_count,
+      media,
+      code_snippet,
+      tags,
+      profiles:author_id (
+        name,
+        handle,
+        avatar,
+        role
+      )
+    `)
+    .eq("id", postId)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return data;
 }
 
 /**
@@ -295,17 +354,26 @@ export async function searchPostsSupabase(query: string, page = 0, pageSize = 20
   if (!isSupabaseConfigured || !query.trim()) return [];
   const from = page * pageSize;
   const to = from + pageSize - 1;
-  const { data, error } = await supabase
+  const q = `%${query.trim()}%`;
+
+  const { data: ilikeData } = await supabase
+    .from("posts")
+    .select("*, profiles(*)")
+    .or(`content.ilike.${q},title.ilike.${q}`)
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (ilikeData && ilikeData.length > 0) {
+    return ilikeData;
+  }
+
+  const { data } = await supabase
     .from("posts")
     .select("*, profiles(*)")
     .textSearch("search_vector", query.trim(), { type: "websearch" })
     .order("created_at", { ascending: false })
     .range(from, to);
 
-  if (error) {
-    console.error("Error searching posts:", error);
-    return [];
-  }
   return data || [];
 }
 

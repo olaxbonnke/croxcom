@@ -208,6 +208,7 @@ export function Composer({
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
               placeholder={placeholder}
+              maxLength={MAX}
               rows={focused || value ? 3 : 2}
               className="w-full resize-none bg-transparent p-2.5 font-mono text-[14px] leading-relaxed text-foreground placeholder:text-muted-foreground/70 focus:outline-none"
             />

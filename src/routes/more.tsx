@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/lib/AuthContext";
@@ -58,6 +58,26 @@ export function MorePage() {
   const [reducedMotion, setReducedMotion] = useState(false);
   const [fontSize, setFontSize] = useState<"default" | "large" | "xl">("default");
   const [language, setLanguage] = useState("en");
+
+  // Apply font size DOM effect
+  useEffect(() => {
+    const sizeMap: Record<string, string> = { default: "16px", large: "18px", xl: "20px" };
+    document.documentElement.style.fontSize = sizeMap[fontSize] || "16px";
+  }, [fontSize]);
+
+  // Apply reduced motion DOM effect
+  useEffect(() => {
+    if (reducedMotion) {
+      document.documentElement.classList.add("reduce-motion");
+    } else {
+      document.documentElement.classList.remove("reduce-motion");
+    }
+  }, [reducedMotion]);
+
+  // Apply html lang DOM effect
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   const handleLogout = () => {
     logout();

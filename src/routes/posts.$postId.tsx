@@ -48,13 +48,54 @@ function PostViewRoute() {
   const liked = likedPostIds.has(postId);
   const reposted = repostedPostIds.has(postId);
 
-  const post = posts.find((p) => p.id === postId);
+  const [singlePost, setSinglePost] = useState<any>(null);
+  const post = posts.find((p) => p.id === postId) || singlePost;
   const postComments = comments.filter((c) => c.postId === postId);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 200);
-    return () => clearTimeout(timer);
-  }, [postId]);
+    let isMounted = true;
+    async function loadPost() {
+      if (posts.some((p) => p.id === postId)) {
+        if (isMounted) setIsLoading(false);
+        return;
+      }
+
+      // Import fetchPostByIdSupabase dynamically
+      const { fetchPostByIdSupabase, isSupabaseConfigured } = await import("@/lib/supabase");
+      if (isSupabaseConfigured) {
+        const sb = await fetchPostByIdSupabase(postId);
+        if (sb && isMounted) {
+          const profile = Array.isArray(sb.profiles) ? sb.profiles[0] : sb.profiles;
+          setSinglePost({
+            id: sb.id,
+            author: {
+              id: sb.author_id,
+              name: profile?.name || "AI Developer",
+              handle: profile?.handle || "developer",
+              avatar: profile?.avatar,
+              avatarColor: "#00ff9f",
+              role: profile?.role || "AI Developer",
+            },
+            time: new Date(sb.created_at).toLocaleDateString(),
+            body: sb.content,
+            tags: sb.tags || [],
+            stats: {
+              likes: sb.likes_count || 0,
+              comments: sb.comments_count || 0,
+              reposts: sb.reposts_count || 0,
+            },
+            media: sb.media,
+            codeSnippet: sb.code_snippet,
+          });
+        }
+      }
+      if (isMounted) setIsLoading(false);
+    }
+    loadPost();
+    return () => {
+      isMounted = false;
+    };
+  }, [postId, posts]);
 
   const handleAddComment = () => {
     if (!replyValue.trim() || !post) return;
@@ -180,7 +221,7 @@ function PostViewRoute() {
             {/* Tags */}
             {post.tags && post.tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-4">
-                {post.tags.map((tag) => (
+                {post.tags.map((tag: string) => (
                   <span
                     key={tag}
                     className="rounded-md border border-border/70 bg-background/40 px-2 py-0.5 font-mono text-xs text-muted-foreground hover:border-primary/60 hover:text-primary transition-colors"

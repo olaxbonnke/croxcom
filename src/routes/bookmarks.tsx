@@ -14,6 +14,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { PostCard } from "@/components/feed/PostCard";
 import { useBookmarks } from "@/hooks/useBookmarks";
 import { usePosts } from "@/hooks/usePosts";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/bookmarks")({
   component: BookmarksPage,
@@ -28,7 +29,8 @@ function BookmarksPage() {
 
   const handleClear = () => {
     if (bookmarkedPosts.length === 0) return;
-    if (window.confirm("Clear all bookmarks?")) clearBookmarks();
+    clearBookmarks();
+    toast.success("Bookmarks cleared");
   };
 
   return (

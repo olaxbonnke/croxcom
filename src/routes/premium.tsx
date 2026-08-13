@@ -29,7 +29,25 @@ const FEATURES = [
 
 function PremiumPage() {
   const navigate = useNavigate();
-  const [subscribed, setSubscribed] = useState(false);
+  const [subscribed, setSubscribed] = useState(() => {
+    try {
+      return localStorage.getItem("croxcom_pro_waitlist") === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const handleToggleSubscribed = () => {
+    setSubscribed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("croxcom_pro_waitlist", String(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  };
 
   return (
     <AppShell>
@@ -143,7 +161,7 @@ function PremiumPage() {
 
             <button
               type="button"
-              onClick={() => setSubscribed((prev) => !prev)}
+              onClick={handleToggleSubscribed}
               className="mt-6 w-full rounded-md bg-primary py-2.5 font-mono text-xs text-primary-foreground font-semibold hover:opacity-90 transition-opacity cursor-pointer shadow-md"
             >
               {subscribed ? "✓ Joined Pro Waitlist" : "$ subscribe --pro"}
