@@ -37,7 +37,7 @@ function CommunityPage() {
     async function loadMembers() {
       if (community && isSupabaseConfigured) {
         const raw = await fetchCommunityMembersSupabase(community.id);
-        const mapped: MockUser[] = raw.map((m: any) => ({
+        const mapped: MockUser[] = raw.map((m: Record<string, any>) => ({
           id: m.user_id,
           name: m.profiles?.name || "Developer",
           handle: m.profiles?.handle || "dev",
@@ -55,7 +55,7 @@ function CommunityPage() {
       }
     }
     loadMembers();
-  }, [community?.id, joined, currentUser]);
+  }, [community, joined, currentUser]);
 
   if (!community) {
     return (

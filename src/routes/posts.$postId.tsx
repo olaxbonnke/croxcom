@@ -3,7 +3,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { CommentCard } from "@/components/feed/CommentCard";
 import { Lightbox } from "@/components/feed/Lightbox";
 import { FeedSkeleton } from "@/components/feed/Skeleton";
-import type { PostMedia } from "@/data/mock";
+import type { PostMedia, MockPost } from "@/data/mock";
 import {
   ArrowLeft,
   MessageCircle,
@@ -48,7 +48,7 @@ function PostViewRoute() {
   const liked = likedPostIds.has(postId);
   const reposted = repostedPostIds.has(postId);
 
-  const [singlePost, setSinglePost] = useState<any>(null);
+  const [singlePost, setSinglePost] = useState<MockPost | null>(null);
   const post = posts.find((p) => p.id === postId) || singlePost;
   const postComments = comments.filter((c) => c.postId === postId);
 
@@ -85,7 +85,6 @@ function PostViewRoute() {
               reposts: sb.reposts_count || 0,
             },
             media: sb.media,
-            codeSnippet: sb.code_snippet,
           });
         }
       }

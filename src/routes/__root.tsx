@@ -108,14 +108,7 @@ export const Route = createRootRouteWithContext()({
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap",
       },
     ],
-    scripts: [
-      { children: themeInitScript },
-      {
-        src: "https://www.google.com/recaptcha/enterprise.js?render=6LcNsYMtAAAAADI14nmZeBX8GbrbUTLXgS0eKViY",
-        async: true,
-        defer: true,
-      },
-    ],
+    scripts: [{ children: themeInitScript }],
   }),
   shellComponent: RootShell,
   component: RootComponent,

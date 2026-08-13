@@ -6,11 +6,12 @@ import { CommunityCard } from "@/components/browse/CommunityCard";
 import { PostCard } from "@/components/feed/PostCard";
 import { mockCommunities, trending, mockUsers } from "@/data/mock";
 import { Search, X, Loader2, Plus, Users, Globe, Lock } from "lucide-react";
-import { searchPostsSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { searchPostsSupabase, isSupabaseConfigured, followUserSupabase, unfollowUserSupabase } from "@/lib/supabase";
 import type { MockPost } from "@/data/mock";
 import { SHOW_DEMO_DATA } from "@/lib/config";
 import { RouteErrorBoundary } from "@/components/ui/RouteErrorBoundary";
 import { useCommunities } from "@/lib/CommunityContext";
+import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -96,16 +97,38 @@ function BrowsePage() {
         )
     : [];
 
-  const toggleFollow = (id: string) => {
+  const { currentUser } = useAuth();
+
+  const toggleFollow = (targetId: string) => {
+    const isCurrentlyFollowing = followedUserIds.has(targetId);
+    const nextState = !isCurrentlyFollowing;
+
     setFollowedUserIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
+      if (isCurrentlyFollowing) {
+        next.delete(targetId);
       } else {
-        next.add(id);
+        next.add(targetId);
       }
       return next;
     });
+
+    if (currentUser?.id) {
+      const followKey = `croxcom_follows_${currentUser.id}_${targetId}`;
+      localStorage.setItem(followKey, String(nextState));
+
+      if (isSupabaseConfigured) {
+        if (nextState) {
+          followUserSupabase(currentUser.id, targetId).catch((err) => {
+            console.error("Error following user in Supabase:", err);
+          });
+        } else {
+          unfollowUserSupabase(currentUser.id, targetId).catch((err) => {
+            console.error("Error unfollowing user in Supabase:", err);
+          });
+        }
+      }
+    }
   };
 
   // Server-side full-text post search

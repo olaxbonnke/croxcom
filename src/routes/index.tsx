@@ -58,18 +58,13 @@ function RootRoute() {
     }
   }, [isLoadingAuth, isAuthenticated, hasCompletedOnboarding, navigate]);
 
-  if (isLoadingAuth) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center font-mono text-xs text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <span>Connecting to CroxCom...</span>
-        </div>
-      </div>
-    );
+  // On Server-Side Rendering (SSR), always render LandingPage so the server HTML payload
+  // contains full headlines, CTAs, and semantic markup for instant browser paint!
+  if (typeof window === "undefined" || !isAuthenticated) {
+    return <LandingPage />;
   }
 
-  if (!isAuthenticated) {
+  if (isLoadingAuth) {
     return <LandingPage />;
   }
 

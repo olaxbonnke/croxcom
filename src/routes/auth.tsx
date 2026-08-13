@@ -64,6 +64,19 @@ function AuthPage() {
   const [phase, setPhase] = useState<AuthPhase>("login");
   const [email, setEmail] = useState("");
 
+  // Lazy-load reCAPTCHA Enterprise script only when on the auth page
+  useEffect(() => {
+    if (!document.getElementById("recaptcha-script")) {
+      const script = document.createElement("script");
+      script.id = "recaptcha-script";
+      script.src =
+        "https://www.google.com/recaptcha/enterprise.js?render=6LcNsYMtAAAAADI14nmZeBX8GbrbUTLXgS0eKViY";
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+  }, []);
+
   // Onboarding state with automatic pre-fill from OAuth/session
   const [displayName, setDisplayName] = useState(() => currentUser?.name || "");
   const [userHandle, setUserHandle] = useState(() => currentUser?.handle || "");
