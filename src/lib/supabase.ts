@@ -138,6 +138,18 @@ export async function followUserSupabase(followerId: string, followedId: string)
     .from("follows")
     .insert({ follower_id: followerId, followed_id: followedId });
   if (error) console.error("Error following user:", error);
+  if (!error) {
+    try {
+      await supabase.from("notifications").insert({
+        recipient_id: followedId,
+        actor_id: followerId,
+        type: "follow",
+        content: "started following you",
+      });
+    } catch {
+      /* ignore */
+    }
+  }
   return !error;
 }
 
@@ -299,6 +311,31 @@ export async function createPostSupabase(post: {
     console.error("Error creating post in Supabase:", error);
     return null;
   }
+
+  // Notify all followers about the new post
+  if (data) {
+    try {
+      const { data: followers } = await supabase
+        .from("follows")
+        .select("follower_id")
+        .eq("followed_id", post.authorId);
+
+      if (followers && followers.length > 0) {
+        const snippet = (post.title || post.content).slice(0, 120);
+        const notificationsToInsert = followers.map((f) => ({
+          recipient_id: f.follower_id,
+          actor_id: post.authorId,
+          type: "post",
+          post_id: data.id,
+          content: snippet,
+        }));
+        await supabase.from("notifications").insert(notificationsToInsert);
+      }
+    } catch (err) {
+      console.error("Error creating post notifications:", err);
+    }
+  }
+
   return data;
 }
 

@@ -1,5 +1,5 @@
 import { MockNotification } from "@/data/mock";
-import { Heart, Repeat2, UserPlus, AtSign, MessageCircle } from "lucide-react";
+import { Heart, Repeat2, UserPlus, AtSign, MessageCircle, FileText } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 
 export function NotifItem({ notif }: { notif: MockNotification }) {
@@ -11,7 +11,8 @@ export function NotifItem({ notif }: { notif: MockNotification }) {
     follow: UserPlus,
     mention: AtSign,
     comment: MessageCircle,
-  }[notif.kind];
+    post: FileText,
+  }[notif.kind] || FileText;
 
   const iconColors = {
     like: "text-accent-orange bg-accent-orange/10",
@@ -19,7 +20,8 @@ export function NotifItem({ notif }: { notif: MockNotification }) {
     follow: "text-accent-purple bg-accent-purple/10",
     mention: "text-accent-orange bg-accent-orange/10",
     comment: "text-primary bg-primary/10",
-  }[notif.kind];
+    post: "text-primary bg-primary/10",
+  }[notif.kind] || "text-primary bg-primary/10";
 
   const actionText = {
     like: "liked your post",
@@ -27,7 +29,8 @@ export function NotifItem({ notif }: { notif: MockNotification }) {
     follow: "started following you",
     mention: "mentioned you",
     comment: "replied to your post",
-  }[notif.kind];
+    post: "published a new post",
+  }[notif.kind] || "sent a notification";
 
   const handleClick = () => {
     if (notif.kind === "follow") {

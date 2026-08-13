@@ -55,7 +55,7 @@ export type MockComment = {
 
 export type MockNotification = {
   id: string;
-  kind: "like" | "repost" | "follow" | "mention" | "comment";
+  kind: "like" | "repost" | "follow" | "mention" | "comment" | "post";
   actor: MockUser;
   time: string;
   read: boolean;
