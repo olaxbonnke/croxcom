@@ -9,6 +9,7 @@ import {
   Settings,
   Sparkles,
   User,
+  Users,
 } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ type NavItem = { label: string; to: string; icon: ComponentType<SVGProps<SVGSVGE
 const NAV: NavItem[] = [
   { label: "Home", to: "/", icon: Home },
   { label: "Browse", to: "/browse", icon: Compass },
+  { label: "Communities", to: "/browse", icon: Users },
   { label: "Library", to: "/library", icon: Library },
   { label: "Notifications", to: "/notifications", icon: Bell },
   { label: "Messages", to: "/messages", icon: MessageSquare },

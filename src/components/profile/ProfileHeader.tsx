@@ -75,9 +75,19 @@ export function ProfileHeader({
     setAvatar(initialUser.avatar || "");
     setBanner(initialUser.banner || "");
 
+    // Check local storage follow cache first
+    const followKey = currentUser?.id && initialUser?.id ? `croxcom_follows_${currentUser.id}_${initialUser.id}` : null;
+    const localFollowed = followKey ? localStorage.getItem(followKey) === "true" : false;
+    if (localFollowed) {
+      setIsFollowing(true);
+    }
+
     // Fetch initial follow state and counts from Supabase
     if (isSupabaseConfigured && currentUser?.id && initialUser?.id && !isCurrentUser) {
-      fetchIsFollowingSupabase(currentUser.id, initialUser.id).then(setIsFollowing);
+      fetchIsFollowingSupabase(currentUser.id, initialUser.id).then((isFoll) => {
+        setIsFollowing(isFoll || localFollowed);
+        if (followKey) localStorage.setItem(followKey, String(isFoll || localFollowed));
+      });
       fetchFollowCountsSupabase(initialUser.id).then((c) => {
         setCounts({ followers: c.followers, following: c.following });
       });
@@ -89,14 +99,19 @@ export function ProfileHeader({
   }, [initialUser, currentUser?.id, isCurrentUser]);
 
   const handleToggleFollow = async () => {
-    if (isFollowing) {
-      setIsFollowing(false);
+    const nextState = !isFollowing;
+    setIsFollowing(nextState);
+    if (currentUser?.id && user?.id) {
+      const followKey = `croxcom_follows_${currentUser.id}_${user.id}`;
+      localStorage.setItem(followKey, String(nextState));
+    }
+
+    if (!nextState) {
       setCounts((prev) => ({ ...prev, followers: Math.max(0, prev.followers - 1) }));
       if (isSupabaseConfigured && currentUser?.id && user?.id) {
         await unfollowUserSupabase(currentUser.id, user.id);
       }
     } else {
-      setIsFollowing(true);
       setCounts((prev) => ({ ...prev, followers: prev.followers + 1 }));
       if (isSupabaseConfigured && currentUser?.id && user?.id) {
         await followUserSupabase(currentUser.id, user.id);

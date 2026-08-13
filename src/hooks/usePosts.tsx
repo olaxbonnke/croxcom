@@ -112,9 +112,21 @@ export function PostProvider({ children }: { children: ReactNode }) {
       initialLoadDone.current = true;
 
       const sbPosts = await fetchPostsSupabase(0, PAGE_SIZE);
+      let localUserPosts: MockPost[] = [];
+      try {
+        const stored = localStorage.getItem("croxcom_local_user_posts");
+        if (stored) localUserPosts = JSON.parse(stored);
+      } catch { /* ignore */ }
+
       if (sbPosts && sbPosts.length > 0) {
-        setPosts(sbPosts.map(mapSupabasePost));
+        const mapped = sbPosts.map(mapSupabasePost);
+        const existingIds = new Set(mapped.map((p) => p.id));
+        const combined = [...localUserPosts.filter((p) => !existingIds.has(p.id)), ...mapped];
+        setPosts(combined);
         if (sbPosts.length < PAGE_SIZE) setHasMore(false);
+      } else if (localUserPosts.length > 0) {
+        setPosts(localUserPosts);
+        setHasMore(false);
       } else {
         setHasMore(false);
       }
@@ -234,31 +246,44 @@ export function PostProvider({ children }: { children: ReactNode }) {
 
   const addPost = useCallback(
     async (post: MockPost & { imageUrls?: string[] }) => {
-      const postWithCurrentUser = {
+      const postWithCurrentUser: MockPost = {
         ...post,
+        id: post.id || `post-user-${Date.now()}`,
         author: currentUser,
       };
 
+      // 1. Immediately add to local state
+      setPosts((prev) => [postWithCurrentUser, ...prev]);
+      recentOwnPostIds.current.add(postWithCurrentUser.id);
+
+      // 2. Persist to localStorage local cache so posts NEVER clear on refresh
+      try {
+        const stored = localStorage.getItem("croxcom_local_user_posts");
+        const existing = stored ? JSON.parse(stored) : [];
+        localStorage.setItem("croxcom_local_user_posts", JSON.stringify([postWithCurrentUser, ...existing]));
+      } catch {
+        /* ignore */
+      }
+
+      toast.success("Post published!");
+
+      // 3. Persist to Supabase in background
       if (isSupabaseConfigured && currentUser?.id) {
-        const saved = await createPostSupabase({
-          title: post.body.slice(0, 50) || "New Post",
-          content: post.body,
-          tags: post.tags,
-          authorId: currentUser.id,
-          imageUrls: post.imageUrls,
-        });
-        if (saved) {
-          const reconciledPost = { ...postWithCurrentUser, id: saved.id };
-          recentOwnPostIds.current.add(saved.id);
-          setPosts((prev) => [reconciledPost, ...prev]);
-          toast.success("Post published!");
-          return;
-        } else {
-          toast.error("Failed to publish post");
+        try {
+          const saved = await createPostSupabase({
+            title: post.body.slice(0, 50) || "New Post",
+            content: post.body,
+            tags: post.tags,
+            authorId: currentUser.id,
+            imageUrls: post.imageUrls,
+          });
+          if (saved?.id) {
+            recentOwnPostIds.current.add(saved.id);
+          }
+        } catch (err) {
+          console.warn("Background Supabase post insert exception:", err);
         }
       }
-      // Fallback: local-only insert
-      setPosts((prev) => [postWithCurrentUser, ...prev]);
     },
     [currentUser],
   );

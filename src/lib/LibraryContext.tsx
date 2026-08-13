@@ -108,6 +108,7 @@ interface LibraryContextType {
   savedIds: string[];
   toggleSave: (id: string) => void;
   isSaved: (id: string) => boolean;
+  addItemToLibrary: (item: Omit<LibraryItem, "id" | "likes">) => void;
 }
 
 const LibraryContext = createContext<LibraryContextType | undefined>(undefined);
@@ -121,29 +122,32 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
     } catch {
       /* ignore */
     }
-    return ["lib-1", "lib-4"]; // default saved for demo
+    return ["lib-1", "lib-4"];
   });
 
   const { currentUser } = useAuth();
 
-  // Load library items from Supabase when configured
+  // Load library items from Supabase when configured, falling back to INITIAL_LIBRARY_ITEMS
   useEffect(() => {
     async function loadFromSupabase() {
       if (!isSupabaseConfigured) return;
       const sbItems = await fetchLibraryItemsSupabase();
-      if (sbItems.length > 0) {
+      if (sbItems && sbItems.length > 0) {
         const mapped: LibraryItem[] = sbItems.map((item: Record<string, unknown>) => ({
           id: item.id as string,
-          title: (item.title as string) || "Untitled",
-          author: currentUser || mockUsers[0] || { id: "unknown", name: "Unknown", handle: "unknown", avatarColor: "#00ff9f" },
-          imageUrl: (item.image_url as string) || "",
+          title: (item.title as string) || "Untitled Prompt",
+          author: currentUser || mockUsers[0],
+          imageUrl: (item.image_url as string) || "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80",
           prompt: (item.prompt as string) || "",
           description: (item.description as string) || "",
           category: (item.category as LibraryItem["category"]) || "UI/UX",
-          tags: (item.tags as string[]) || [],
+          tags: (item.tags as string[]) || ["AI"],
           likes: (item.likes as number) || 0,
         }));
-        setItems(mapped);
+        // Merge with initial items ensuring no duplicate IDs
+        const existingIds = new Set(mapped.map((m) => m.id));
+        const combined = [...mapped, ...INITIAL_LIBRARY_ITEMS.filter((i) => !existingIds.has(i.id))];
+        setItems(combined);
       }
     }
     loadFromSupabase();
@@ -167,8 +171,18 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
 
   const isSaved = (id: string) => savedIds.includes(id);
 
+  const addItemToLibrary = (newItem: Omit<LibraryItem, "id" | "likes">) => {
+    const created: LibraryItem = {
+      ...newItem,
+      id: `lib-user-${Date.now()}`,
+      likes: 1,
+    };
+    setItems((prev) => [created, ...prev]);
+    setSavedIds((prev) => [...prev, created.id]);
+  };
+
   return (
-    <LibraryContext.Provider value={{ items, savedIds, toggleSave, isSaved }}>
+    <LibraryContext.Provider value={{ items, savedIds, toggleSave, isSaved, addItemToLibrary }}>
       {children}
     </LibraryContext.Provider>
   );

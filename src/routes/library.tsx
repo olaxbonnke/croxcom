@@ -11,12 +11,19 @@ export const Route = createFileRoute("/library")({
 type Tab = "Main Library" | "My Library";
 
 export function LibraryPage() {
-  const { items, savedIds, toggleSave, isSaved } = useLibrary();
+  const { items, savedIds, toggleSave, isSaved, addItemToLibrary } = useLibrary();
 
   const [activeTab, setActiveTab] = useState<Tab>("Main Library");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [selectedItem, setSelectedItem] = useState<LibraryItem | null>(null);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  // New Library Item form
+  const [newTitle, setNewTitle] = useState("");
+  const [newPrompt, setNewPrompt] = useState("");
+  const [newDesc, setNewDesc] = useState("");
+  const [newCategory, setNewCategory] = useState<LibraryItem["category"]>("UI/UX");
 
   const categories = ["All", "UI/UX", "Model Architecture", "AI Art", "Workflow"];
 
@@ -39,9 +46,13 @@ export function LibraryPage() {
             <Library className="h-5 w-5 text-primary" />
             <h1 className="font-semibold text-foreground text-lg">Library</h1>
           </div>
-          <span className="font-mono text-xs text-muted-foreground border border-primary/20 bg-primary/10 px-2 py-0.5 rounded text-primary">
-            #visual-inspiration
-          </span>
+          <button
+            type="button"
+            onClick={() => setShowAddModal(true)}
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1 font-mono text-xs font-semibold text-primary-foreground hover:opacity-90 transition-opacity cursor-pointer shadow-sm"
+          >
+            <span>+ Submit Prompt</span>
+          </button>
         </div>
         <p className="font-mono text-xs text-muted-foreground mt-0.5">
           Curated visual prompts, architecture diagrams, and UI components for AI builders.
