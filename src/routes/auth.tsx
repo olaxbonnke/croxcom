@@ -117,19 +117,16 @@ function AuthPage() {
     };
   }, [userHandle, currentUser?.id]);
 
-  // If already authenticated AND completed onboarding, redirect to root feed
+  // Automatically set correct phase based on authentication & onboarding status
   useEffect(() => {
-    if (isAuthenticated && hasCompletedOnboarding) {
+    if (!isAuthenticated) {
+      setPhase("login");
+    } else if (isAuthenticated && !hasCompletedOnboarding) {
+      setPhase("onboarding");
+    } else if (isAuthenticated && hasCompletedOnboarding) {
       navigate({ to: "/", replace: true });
     }
   }, [isAuthenticated, hasCompletedOnboarding, navigate]);
-
-  // Transition to onboarding phase for any authenticated user who has not completed onboarding
-  useEffect(() => {
-    if (isAuthenticated && !hasCompletedOnboarding) {
-      setPhase("onboarding");
-    }
-  }, [isAuthenticated, hasCompletedOnboarding]);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

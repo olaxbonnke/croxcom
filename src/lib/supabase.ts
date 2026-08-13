@@ -15,6 +15,34 @@ export const supabase = createClient(
 );
 
 /**
+ * Execute Google reCAPTCHA Enterprise to get a fresh verification token
+ */
+export async function getRecaptchaToken(action = "LOGIN"): Promise<string | undefined> {
+  if (typeof window === "undefined") return undefined;
+  const grecaptcha = (window as any).grecaptcha;
+  if (!grecaptcha?.enterprise) return undefined;
+
+  return new Promise((resolve) => {
+    try {
+      grecaptcha.enterprise.ready(async () => {
+        try {
+          const token = await grecaptcha.enterprise.execute(
+            "6LcNsYMtAAAAADI14nmZeBX8GbrbUTLXgS0eKViY",
+            { action },
+          );
+          resolve(token);
+        } catch (err) {
+          console.warn("reCAPTCHA execution error:", err);
+          resolve(undefined);
+        }
+      });
+    } catch {
+      resolve(undefined);
+    }
+  });
+}
+
+/**
  * Sign in with Email / Password
  */
 export async function signInWithEmail(email: string, captchaToken?: string) {
@@ -22,11 +50,14 @@ export async function signInWithEmail(email: string, captchaToken?: string) {
     console.warn("Supabase not configured: using mock fallback authentication.");
     return { data: { user: { id: "demo-user-id", email } }, error: null };
   }
+
+  const token = captchaToken || (await getRecaptchaToken("LOGIN"));
+
   return await supabase.auth.signInWithOtp({
     email,
     options: {
       emailRedirectTo: `${window.location.origin}/`,
-      captchaToken,
+      captchaToken: token,
     },
   });
 }
