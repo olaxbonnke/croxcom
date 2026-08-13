@@ -17,7 +17,7 @@ export const supabase = createClient(
 /**
  * Sign in with Email / Password
  */
-export async function signInWithEmail(email: string) {
+export async function signInWithEmail(email: string, captchaToken?: string) {
   if (!isSupabaseConfigured) {
     console.warn("Supabase not configured: using mock fallback authentication.");
     return { data: { user: { id: "demo-user-id", email } }, error: null };
@@ -26,6 +26,7 @@ export async function signInWithEmail(email: string) {
     email,
     options: {
       emailRedirectTo: `${window.location.origin}/`,
+      captchaToken,
     },
   });
 }

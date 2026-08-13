@@ -26,7 +26,7 @@ interface AuthContextType {
   hasCompletedOnboarding: boolean;
   currentUser: MockUser;
   onboardingDetails?: OnboardingDetails;
-  login: (provider: "email" | "github" | "google", email?: string) => Promise<void> | void;
+  login: (provider: "email" | "github" | "google", email?: string, captchaToken?: string) => Promise<void> | void;
   logout: () => Promise<void> | void;
   completeOnboarding: (details: OnboardingDetails) => void;
   updateUser: (user: Partial<MockUser>) => void;
@@ -179,7 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, hasCompletedOnboarding, onboardingDetails]);
 
-  const login = async (provider: "email" | "github" | "google", email?: string) => {
+  const login = async (provider: "email" | "github" | "google", email?: string, captchaToken?: string) => {
     setHasCompletedOnboarding(false);
 
     if (isSupabaseConfigured) {
@@ -188,7 +188,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else if (provider === "google") {
         await signInWithGoogle();
       } else if (email) {
-        await signInWithEmail(email);
+        await signInWithEmail(email, captchaToken);
       }
     } else {
       // Mock mode fallback when Supabase is not configured
