@@ -21,7 +21,7 @@ create table public.profiles (
   created_at timestamptz default now() not null,
   updated_at timestamptz default now() not null,
   name text not null,
-  handle text unique not null check (handle ~ '^[a-z0-9_]{3,30}$'),
+  handle text unique not null,
   avatar text,
   avatar_color text default '#00ff9f',
   role text default 'AI Developer',
@@ -442,7 +442,7 @@ create trigger on_comment_notify
   after insert on public.comments
   for each row execute procedure public.notify_on_comment();
 
--- Universal & Fault-Tolerant Profile Creation Trigger for ALL Auth Providers (Google, GitHub, Email, Apple)
+-- Universal & Fault-Tolerant Profile Creation Trigger for ALL Auth Providers
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -450,7 +450,7 @@ security definer
 set search_path = public, pg_temp
 as $$
 declare
-  base_handle text;
+  raw_handle text;
   final_handle text;
   raw_email text;
   extracted_name text;
@@ -466,7 +466,7 @@ begin
     'AI Developer'
   );
 
-  base_handle := lower(regexp_replace(
+  raw_handle := lower(regexp_replace(
     coalesce(
       new.raw_user_meta_data->>'user_name',
       new.raw_user_meta_data->>'preferred_username',
@@ -476,11 +476,15 @@ begin
     '[^a-z0-9_]', '_', 'g'
   ));
   
-  if base_handle is null or base_handle = '' then
-    base_handle := 'dev';
+  if raw_handle is null or char_length(raw_handle) < 2 then
+    raw_handle := 'dev';
   end if;
 
-  final_handle := base_handle || '_' || substring(new.id::text from 1 for 4);
+  if char_length(raw_handle) > 20 then
+    raw_handle := substring(raw_handle from 1 for 20);
+  end if;
+
+  final_handle := raw_handle || '_' || substring(new.id::text from 1 for 4);
 
   extracted_avatar := coalesce(
     new.raw_user_meta_data->>'avatar_url',
