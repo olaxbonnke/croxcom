@@ -442,79 +442,32 @@ create trigger on_comment_notify
   after insert on public.comments
   for each row execute procedure public.notify_on_comment();
 
--- Universal & Fault-Tolerant Profile Creation Trigger for ALL Auth Providers
+-- Minimal & Zero-Conflict Profile Creation Trigger for Compulsory Onboarding
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
 security definer
 set search_path = public, pg_temp
 as $$
-declare
-  raw_handle text;
-  final_handle text;
-  raw_email text;
-  extracted_name text;
-  extracted_avatar text;
 begin
-  raw_email := coalesce(new.email, 'user');
-
-  extracted_name := coalesce(
-    new.raw_user_meta_data->>'full_name',
-    new.raw_user_meta_data->>'name',
-    new.raw_user_meta_data->>'custom_claims'->>'name',
-    split_part(raw_email, '@', 1),
-    'AI Developer'
-  );
-
-  raw_handle := lower(regexp_replace(
-    coalesce(
-      new.raw_user_meta_data->>'user_name',
-      new.raw_user_meta_data->>'preferred_username',
-      new.raw_user_meta_data->>'nickname',
-      split_part(raw_email, '@', 1)
-    ),
-    '[^a-z0-9_]', '_', 'g'
-  ));
-  
-  if raw_handle is null or char_length(raw_handle) < 2 then
-    raw_handle := 'dev';
-  end if;
-
-  if char_length(raw_handle) > 20 then
-    raw_handle := substring(raw_handle from 1 for 20);
-  end if;
-
-  final_handle := raw_handle || '_' || substring(new.id::text from 1 for 4);
-
-  extracted_avatar := coalesce(
-    new.raw_user_meta_data->>'avatar_url',
-    new.raw_user_meta_data->>'picture',
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
-  );
-
   insert into public.profiles (
     id,
     name,
     handle,
-    avatar,
     role,
     onboarding_completed
   )
   values (
     new.id,
-    extracted_name,
-    final_handle,
-    extracted_avatar,
+    coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', split_part(new.email, '@', 1), 'Developer'),
+    'user_' || substring(new.id::text from 1 for 8),
     'AI Developer',
     false
   )
-  on conflict (id) do update set
-    name = excluded.name,
-    avatar = coalesce(public.profiles.avatar, excluded.avatar);
+  on conflict (id) do nothing;
 
   return new;
 exception when others then
-  raise warning 'handle_new_user trigger exception: %', sqlerrm;
   return new;
 end;
 $$;

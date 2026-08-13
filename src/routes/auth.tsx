@@ -211,26 +211,6 @@ function AuthPage() {
     navigate({ to: "/", replace: true });
   };
 
-  // 1-Click Quick Entry Skip Option
-  const handleSkipOnboarding = () => {
-    const finalName = currentUser?.name || displayName.trim() || email.split("@")[0] || "AI Developer";
-    const finalHandle = (currentUser?.handle || userHandle || email.split("@")[0] || "dev")
-      .toLowerCase()
-      .replace(/[^a-z0-9_]/g, "_");
-
-    const details: OnboardingDetails = {
-      preferences: selectedInterests.length > 0 ? selectedInterests : ["Full-Stack Web Apps"],
-      tools: selectedTools.length > 0 ? selectedTools : ["Cursor", "Claude"],
-      interests: selectedInterests.length > 0 ? selectedInterests : ["Full-Stack Web Apps"],
-      devPosition: "Solo",
-      teamRole: "Solo Builder",
-    };
-
-    completeOnboarding(details, { name: finalName, handle: finalHandle });
-    toast.success("Welcome to CroxCom!");
-    navigate({ to: "/", replace: true });
-  };
-
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center bg-background p-4 overflow-hidden font-sans select-none">
       {/* Top Bar */}
@@ -402,14 +382,6 @@ function AuthPage() {
                 <Terminal className="h-4 w-4" />
                 <span>$ croxcom --setup-profile</span>
               </div>
-              {/* Quick 1-Click Skip Option */}
-              <button
-                type="button"
-                onClick={handleSkipOnboarding}
-                className="font-mono text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer underline decoration-dotted underline-offset-4"
-              >
-                Skip for now →
-              </button>
             </div>
 
             <div className="mb-5">
@@ -625,22 +597,14 @@ function AuthPage() {
               )}
 
               {/* Submit / Finish Button */}
-              <div className="pt-2 flex flex-col sm:flex-row gap-3">
+              <div className="pt-2">
                 <button
                   type="submit"
                   disabled={isHandleAvailable === false}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary py-3 px-4 font-mono text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-3 px-4 font-mono text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Sparkles className="h-4 w-4" />
                   <span>Finish Setup & Enter Feed</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleSkipOnboarding}
-                  className="sm:w-auto px-4 py-3 font-mono text-xs text-muted-foreground hover:text-foreground border border-border/70 rounded-lg bg-background/50 hover:bg-accent/40 transition-colors cursor-pointer"
-                >
-                  Skip
                 </button>
               </div>
             </form>
