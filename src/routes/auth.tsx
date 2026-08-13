@@ -176,7 +176,9 @@ function AuthPage() {
     setList(list.includes(item) ? list.filter((i) => i !== item) : [...list, item]);
   };
 
-  const handleOnboardingSubmit = (e: React.FormEvent) => {
+  const [authMode, setAuthMode] = useState<"signin" | "signup">("signup");
+
+  const handleOnboardingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (isHandleAvailable === false) {
@@ -203,7 +205,7 @@ function AuthPage() {
       companyName: devPosition === "Team" ? companyName.trim() : undefined,
     };
 
-    completeOnboarding(details, { name: finalName, handle: finalHandle });
+    await completeOnboarding(details, { name: finalName, handle: finalHandle });
     toast.success("Profile setup complete! Welcome to CroxCom.");
     navigate({ to: "/", replace: true });
   };
@@ -236,11 +238,39 @@ function AuthPage() {
               <span>$ croxcom --authenticate</span>
             </div>
 
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Welcome to CroxCom
-            </h1>
+            {/* Sign In / Sign Up Mode Switcher Tabs */}
+            <div className="flex border-b border-border/60 pb-3 mb-4 font-mono text-xs">
+              <button
+                type="button"
+                onClick={() => setAuthMode("signup")}
+                className={`flex-1 py-1.5 text-center rounded-md font-semibold transition-colors cursor-pointer ${
+                  authMode === "signup"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Sign Up (New Account)
+              </button>
+              <button
+                type="button"
+                onClick={() => setAuthMode("signin")}
+                className={`flex-1 py-1.5 text-center rounded-md font-semibold transition-colors cursor-pointer ${
+                  authMode === "signin"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Sign In (Existing)
+              </button>
+            </div>
+
+            <h2 className="text-xl font-bold tracking-tight text-foreground">
+              {authMode === "signup" ? "Create your CroxCom Account" : "Sign In to CroxCom"}
+            </h2>
             <p className="mt-1 text-xs text-muted-foreground">
-              Sign in to share updates, discover models, and connect with AI developers.
+              {authMode === "signup"
+                ? "Join the community for AI developers to share models, code, and builds."
+                : "Welcome back! Sign in to access your feed, messages, and profile."}
             </p>
 
             {/* Social Logins */}
@@ -251,7 +281,7 @@ function AuthPage() {
                 className="flex items-center justify-center gap-2 rounded-lg border border-border bg-background/80 py-2.5 px-4 font-mono text-xs font-medium text-foreground transition-all hover:border-primary/60 hover:bg-accent/40 cursor-pointer shadow-sm"
               >
                 <Github className="h-4 w-4" />
-                <span>GitHub</span>
+                <span>{authMode === "signup" ? "Sign Up with GitHub" : "Sign In with GitHub"}</span>
               </button>
 
               <button
@@ -277,14 +307,14 @@ function AuthPage() {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                   />
                 </svg>
-                <span>Google</span>
+                <span>{authMode === "signup" ? "Sign Up with Google" : "Sign In with Google"}</span>
               </button>
             </div>
 
             <div className="my-5 flex items-center gap-3">
               <div className="h-px flex-1 bg-border/60" />
               <span className="font-mono text-[10px] uppercase text-muted-foreground/60">
-                Or Magic Link
+                Or Email {authMode === "signup" ? "Sign Up" : "Sign In"}
               </span>
               <div className="h-px flex-1 bg-border/60" />
             </div>
@@ -312,10 +342,22 @@ function AuthPage() {
                 type="submit"
                 className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-3 px-4 font-mono text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 cursor-pointer shadow-md"
               >
-                <span>Send Magic Link</span>
+                <span>{authMode === "signup" ? "Create Account with Email" : "Send Magic Link"}</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
             </form>
+
+            <div className="mt-5 text-center font-mono text-xs">
+              <button
+                type="button"
+                onClick={() => setAuthMode(authMode === "signup" ? "signin" : "signup")}
+                className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+              >
+                {authMode === "signup"
+                  ? "Already have an account? Sign In →"
+                  : "Don't have an account yet? Create one →"}
+              </button>
+            </div>
           </motion.div>
         )}
 

@@ -28,7 +28,7 @@ interface AuthContextType {
   onboardingDetails?: OnboardingDetails;
   login: (provider: "email" | "github" | "google", email?: string, captchaToken?: string) => Promise<void> | void;
   logout: () => Promise<void> | void;
-  completeOnboarding: (details: OnboardingDetails, userUpdates?: Partial<MockUser>) => void;
+  completeOnboarding: (details: OnboardingDetails, userUpdates?: Partial<MockUser>) => Promise<void> | void;
   updateUser: (user: Partial<MockUser>) => void;
   isRealUser: boolean;
 }
@@ -237,7 +237,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // AUTH_STORAGE_KEY is written by the persistence effect with the new false state
   };
 
-  const completeOnboarding = (details: OnboardingDetails, userUpdates?: Partial<MockUser>) => {
+  const completeOnboarding = async (details: OnboardingDetails, userUpdates?: Partial<MockUser>) => {
     setOnboardingDetails(details);
     setHasCompletedOnboarding(true);
 
@@ -251,20 +251,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(mergedUser));
 
     if (isSupabaseConfigured && mergedUser.id) {
-      upsertProfile({
-        id: mergedUser.id,
-        name: mergedUser.name,
-        handle: mergedUser.handle,
-        role: mergedUser.role,
-        bio: mergedUser.bio || "",
-        avatar: mergedUser.avatar,
-        onboarding_completed: true,
-        company_name: details.companyName,
-        preferences: details.preferences,
-        tools: details.tools,
-        interests: details.interests,
-        dev_position: details.devPosition,
-      });
+      try {
+        const res = await upsertProfile({
+          id: mergedUser.id,
+          name: mergedUser.name,
+          handle: mergedUser.handle,
+          role: mergedUser.role,
+          bio: mergedUser.bio || "",
+          avatar: mergedUser.avatar,
+          onboarding_completed: true,
+          company_name: details.companyName,
+          preferences: details.preferences,
+          tools: details.tools,
+          interests: details.interests,
+          dev_position: details.devPosition,
+        });
+
+        // Fail-safe update: ensure onboarding_completed is strictly persisted as true
+        await supabase
+          .from("profiles")
+          .update({
+            onboarding_completed: true,
+            name: mergedUser.name,
+            handle: mergedUser.handle,
+          })
+          .eq("id", mergedUser.id);
+      } catch (err) {
+        console.error("Error persisting onboarding completion to Supabase:", err);
+      }
     }
   };
 
