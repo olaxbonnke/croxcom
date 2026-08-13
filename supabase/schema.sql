@@ -442,7 +442,7 @@ create trigger on_comment_notify
   after insert on public.comments
   for each row execute procedure public.notify_on_comment();
 
--- Auto-create profile on signup from auth.users (Fault-Tolerant)
+-- Universal & Fault-Tolerant Profile Creation Trigger for ALL Auth Providers (Google, GitHub, Email, Apple)
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -453,10 +453,26 @@ declare
   base_handle text;
   final_handle text;
   raw_email text;
+  extracted_name text;
+  extracted_avatar text;
 begin
   raw_email := coalesce(new.email, 'user');
+
+  extracted_name := coalesce(
+    new.raw_user_meta_data->>'full_name',
+    new.raw_user_meta_data->>'name',
+    new.raw_user_meta_data->>'custom_claims'->>'name',
+    split_part(raw_email, '@', 1),
+    'AI Developer'
+  );
+
   base_handle := lower(regexp_replace(
-    coalesce(new.raw_user_meta_data->>'user_name', new.raw_user_meta_data->>'preferred_username', split_part(raw_email, '@', 1)),
+    coalesce(
+      new.raw_user_meta_data->>'user_name',
+      new.raw_user_meta_data->>'preferred_username',
+      new.raw_user_meta_data->>'nickname',
+      split_part(raw_email, '@', 1)
+    ),
     '[^a-z0-9_]', '_', 'g'
   ));
   
@@ -465,6 +481,12 @@ begin
   end if;
 
   final_handle := base_handle || '_' || substring(new.id::text from 1 for 4);
+
+  extracted_avatar := coalesce(
+    new.raw_user_meta_data->>'avatar_url',
+    new.raw_user_meta_data->>'picture',
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+  );
 
   insert into public.profiles (
     id,
@@ -476,9 +498,9 @@ begin
   )
   values (
     new.id,
-    coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', split_part(raw_email, '@', 1), 'AI Developer'),
+    extracted_name,
     final_handle,
-    coalesce(new.raw_user_meta_data->>'avatar_url', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'),
+    extracted_avatar,
     'AI Developer',
     false
   )
