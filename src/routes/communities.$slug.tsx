@@ -10,6 +10,7 @@ import { useState } from "react";
 import { usePosts } from "@/hooks/usePosts";
 
 import { useCommunities } from "@/lib/CommunityContext";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/AuthContext";
 import { SHOW_DEMO_DATA } from "@/lib/config";
 import { isSupabaseConfigured, uploadPostImage, fetchCommunityMembersSupabase } from "@/lib/supabase";
@@ -80,22 +81,24 @@ function CommunityPage() {
     (p) => p.community?.id === community.id || p.community?.slug === community.slug,
   );
 
-  const handleCommunityPost = async ({
+  const handlePostSubmit = async ({
     body,
     tags,
-    media,
     imageDataUrls,
     imageFiles,
   }: {
     body: string;
     tags: string[];
-    privacy: "public" | "followers" | "private";
     imageDataUrls: string[];
-    imageFiles?: File[];
-    media?: PostMedia | PostMedia[];
+    imageFiles: File[];
   }) => {
-    let finalMedia: PostMedia | undefined = Array.isArray(media) ? media[0] : media;
+    if (!joined) {
+      toast.error(`You must join /${community.name} to post!`);
+      return;
+    }
+
     let imageUrls: string[] | undefined;
+    let finalMedia: PostMedia | undefined;
 
     // Upload images to Supabase Storage if configured
     if (isSupabaseConfigured && currentUser?.id && imageFiles && imageFiles.length > 0) {
@@ -211,7 +214,7 @@ function CommunityPage() {
             {joined ? (
               <div className="border-b border-border/70 bg-card/30">
                 <Composer
-                  onSubmit={handleCommunityPost}
+                  onSubmit={handlePostSubmit}
                   placeholder={`Post to /${community.name}…`}
                   compact
                 />

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/lib/AuthContext";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   Bell,
