@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth, type OnboardingDetails } from "@/lib/AuthContext";
 import { isSupabaseConfigured, checkHandleAvailableSupabase } from "@/lib/supabase";
@@ -79,15 +79,19 @@ function AuthPage() {
   const [companyName, setCompanyName] = useState("");
   const [teamRole, setTeamRole] = useState("Full-Stack AI Dev");
 
-  // Keep displayName and userHandle pre-filled from currentUser
+  // Pre-fill displayName and userHandle ONCE when user authenticates (does NOT bounce back when backspacing to empty)
+  const initializedUserRef = useRef<string | null>(null);
   useEffect(() => {
-    if (currentUser?.name && !displayName) {
-      setDisplayName(currentUser.name);
+    if (currentUser?.id && initializedUserRef.current !== currentUser.id) {
+      initializedUserRef.current = currentUser.id;
+      if (currentUser.name && currentUser.name !== "New Developer") {
+        setDisplayName(currentUser.name);
+      }
+      if (currentUser.handle && currentUser.handle !== "new_developer") {
+        setUserHandle(currentUser.handle);
+      }
     }
-    if (currentUser?.handle && !userHandle) {
-      setUserHandle(currentUser.handle);
-    }
-  }, [currentUser, displayName, userHandle]);
+  }, [currentUser]);
 
   // Real-time handle availability checker
   useEffect(() => {
