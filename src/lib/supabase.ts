@@ -43,6 +43,7 @@ export async function signInWithGitHub() {
     provider: "github",
     options: {
       redirectTo: `${window.location.origin}/`,
+      skipBrowserRedirect: false,
     },
   });
 }
@@ -59,6 +60,7 @@ export async function signInWithGoogle() {
     provider: "google",
     options: {
       redirectTo: `${window.location.origin}/`,
+      skipBrowserRedirect: false,
     },
   });
 }

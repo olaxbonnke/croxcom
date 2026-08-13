@@ -186,11 +186,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (provider: "email" | "github" | "google", email?: string, captchaToken?: string) => {
     if (isSupabaseConfigured) {
       if (provider === "github") {
-        const { error } = await signInWithGitHub();
+        const { data, error } = await signInWithGitHub();
         if (error) throw error;
+        if (data?.url) {
+          window.location.href = data.url;
+        }
       } else if (provider === "google") {
-        const { error } = await signInWithGoogle();
+        const { data, error } = await signInWithGoogle();
         if (error) throw error;
+        if (data?.url) {
+          window.location.href = data.url;
+        }
       } else if (email) {
         const { error } = await signInWithEmail(email, captchaToken);
         if (error) throw error;
