@@ -1,12 +1,30 @@
 import { Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ArrowRight, Terminal, Sparkles, Code2, Users, Cpu } from "lucide-react";
 
+/**
+ * Landing page with pure-CSS fade-in animations.
+ *
+ * Previously used framer-motion for all hero content, which meant nothing
+ * was visible until JS hydration completed (~2.7s on production builds).
+ * Now uses CSS @keyframes so content is painted by the browser immediately
+ * and animates without waiting for any JS library.
+ */
 export function LandingPage() {
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-between bg-background px-4 py-8 overflow-hidden font-sans select-none">
+      {/* Scoped CSS keyframes for hero fade-in — no JS dependency */}
+      <style>{`
+        @keyframes heroFadeUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .hero-animate {
+          animation: heroFadeUp 0.5s ease-out both;
+        }
+      `}</style>
+
       {/* Top Bar */}
       <div className="w-full max-w-5xl flex items-center justify-between z-20">
         <Logo size="md" />
@@ -28,44 +46,36 @@ export function LandingPage() {
       {/* Main Hero Content (Single Viewport) */}
       <main className="flex-1 flex flex-col items-center justify-center text-center max-w-3xl z-10 my-auto py-12 px-4">
         {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs text-primary mb-6 backdrop-blur-sm"
+        <div
+          className="hero-animate inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs text-primary mb-6 backdrop-blur-sm"
+          style={{ animationDelay: "0s" }}
         >
           <Terminal className="h-3.5 w-3.5" />
           <span>croxcom v0.1.0</span>
           <span className="text-primary/40">•</span>
           <span className="text-muted-foreground">AI Developer Network</span>
-        </motion.div>
+        </div>
 
         {/* Main Headline */}
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-[1.15]"
+        <h1
+          className="hero-animate text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-[1.15]"
+          style={{ animationDelay: "0.08s" }}
         >
           A community for AI developers to share updates, resources, and build together
-        </motion.h1>
+        </h1>
 
         {/* Subheadline */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-6 text-base sm:text-lg text-muted-foreground max-w-2xl leading-relaxed font-sans"
+        <p
+          className="hero-animate mt-6 text-base sm:text-lg text-muted-foreground max-w-2xl leading-relaxed font-sans"
+          style={{ animationDelay: "0.16s" }}
         >
           Connect with ML engineers, discover open-source models, discuss research, share bounties, and showcase what you're building.
-        </motion.p>
+        </p>
 
         {/* Feature Highlights Pills */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.25 }}
-          className="mt-6 flex flex-wrap justify-center gap-2 font-mono text-xs text-muted-foreground"
+        <div
+          className="hero-animate mt-6 flex flex-wrap justify-center gap-2 font-mono text-xs text-muted-foreground"
+          style={{ animationDelay: "0.22s" }}
         >
           <span className="inline-flex items-center gap-1.5 rounded-md border border-border/80 bg-card/60 px-2.5 py-1">
             <Cpu className="h-3 w-3 text-primary" /> Model Fine-Tuning
@@ -79,14 +89,12 @@ export function LandingPage() {
           <span className="inline-flex items-center gap-1.5 rounded-md border border-border/80 bg-card/60 px-2.5 py-1">
             <Users className="h-3 w-3 text-primary" /> Dev Bounties
           </span>
-        </motion.div>
+        </div>
 
         {/* CTA Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-sm"
+        <div
+          className="hero-animate mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-sm"
+          style={{ animationDelay: "0.28s" }}
         >
           <Link
             to="/auth"
@@ -102,7 +110,7 @@ export function LandingPage() {
           >
             <span>Log in</span>
           </Link>
-        </motion.div>
+        </div>
       </main>
 
       {/* Footer */}
