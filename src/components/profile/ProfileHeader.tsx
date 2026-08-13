@@ -12,6 +12,8 @@ import {
   unfollowUserSupabase,
   fetchIsFollowingSupabase,
   fetchFollowCountsSupabase,
+  uploadAvatarSupabase,
+  uploadBannerSupabase,
 } from "@/lib/supabase";
 
 interface ProfileHeaderProps {
@@ -102,9 +104,13 @@ export function ProfileHeader({
     }
   };
 
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+
   const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setAvatarFile(file);
       const reader = new FileReader();
       reader.onload = (ev) => {
         setAvatar(ev.target?.result as string);
@@ -116,6 +122,7 @@ export function ProfileHeader({
   const handleBannerFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setBannerFile(file);
       const reader = new FileReader();
       reader.onload = (ev) => {
         setBanner(ev.target?.result as string);
@@ -124,7 +131,21 @@ export function ProfileHeader({
     }
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
+    let finalAvatar = avatar.trim() || undefined;
+    let finalBanner = banner.trim() || undefined;
+
+    if (isSupabaseConfigured && currentUser?.id) {
+      if (avatarFile) {
+        const uploadedAvatar = await uploadAvatarSupabase(currentUser.id, avatarFile);
+        if (uploadedAvatar) finalAvatar = uploadedAvatar;
+      }
+      if (bannerFile) {
+        const uploadedBanner = await uploadBannerSupabase(currentUser.id, bannerFile);
+        if (uploadedBanner) finalBanner = uploadedBanner;
+      }
+    }
+
     const updated: MockUser = {
       ...user,
       name: name.trim() || user.name,
@@ -132,8 +153,8 @@ export function ProfileHeader({
       role: role.trim(),
       bio: bio.trim(),
       avatarColor,
-      avatar: avatar.trim() || undefined,
-      banner: banner.trim() || undefined,
+      avatar: finalAvatar,
+      banner: finalBanner,
     };
 
     setUser(updated);

@@ -693,6 +693,54 @@ export async function uploadPostImage(
 }
 
 /**
+ * Upload an Avatar image to Supabase Storage ('avatars' bucket)
+ */
+export async function uploadAvatarSupabase(
+  userId: string,
+  file: File,
+): Promise<string | null> {
+  if (!isSupabaseConfigured) return null;
+  const fileExt = file.name.split(".").pop();
+  const filePath = `${userId}/avatar-${Date.now()}.${fileExt}`;
+
+  const { error } = await supabase.storage
+    .from("avatars")
+    .upload(filePath, file, { upsert: true });
+
+  if (error) {
+    console.error("Error uploading avatar:", error);
+    return null;
+  }
+
+  const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+  return data.publicUrl;
+}
+
+/**
+ * Upload a Banner image to Supabase Storage ('banners' bucket)
+ */
+export async function uploadBannerSupabase(
+  userId: string,
+  file: File,
+): Promise<string | null> {
+  if (!isSupabaseConfigured) return null;
+  const fileExt = file.name.split(".").pop();
+  const filePath = `${userId}/banner-${Date.now()}.${fileExt}`;
+
+  const { error } = await supabase.storage
+    .from("banners")
+    .upload(filePath, file, { upsert: true });
+
+  if (error) {
+    console.error("Error uploading banner:", error);
+    return null;
+  }
+
+  const { data } = supabase.storage.from("banners").getPublicUrl(filePath);
+  return data.publicUrl;
+}
+
+/**
  * Create a Conversation between two users in Supabase
  */
 export async function createConversationSupabase(
