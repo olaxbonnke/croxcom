@@ -144,10 +144,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setCurrentUser(updatedUser);
         localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(updatedUser));
 
-        // An existing user has completed onboarding if they have onboarding_completed: true OR an existing profile handle & name
-        const isCompleted = Boolean(
-          profile?.onboarding_completed || (profile?.handle && profile?.name),
-        );
+        // A user has completed onboarding ONLY if onboarding_completed is explicitly true in Supabase profile
+        const isCompleted = Boolean(profile?.onboarding_completed === true);
         setHasCompletedOnboarding(isCompleted);
         setIsLoadingAuth(false);
       } else if (event === "SIGNED_OUT") {
