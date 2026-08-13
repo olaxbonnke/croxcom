@@ -165,7 +165,9 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
     const isCurrentlySaved = savedIds.includes(id);
     setSavedIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
     if (isSupabaseConfigured && currentUser?.id) {
-      toggleLibrarySaveSupabase(currentUser.id, id, isCurrentlySaved);
+      toggleLibrarySaveSupabase(currentUser.id, id, isCurrentlySaved).catch((err) => {
+        console.error("Error saving library item in Supabase:", err);
+      });
     }
   };
 

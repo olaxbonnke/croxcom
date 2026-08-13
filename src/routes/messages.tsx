@@ -9,6 +9,7 @@ import { Search, X, MessageSquarePlus } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { subscribeToMessages, sendMessageSupabase, isSupabaseConfigured, createConversationSupabase, fetchConversationsSupabase, searchUsersSupabase } from "@/lib/supabase";
 import { SHOW_DEMO_DATA } from "@/lib/config";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/messages")({
   component: MessagesPage,
@@ -111,7 +112,10 @@ function MessagesPage() {
     };
 
     if (isSupabaseConfigured && currentUser?.id && activeConv?.participant.id) {
-      sendMessageSupabase(activeConv.id, currentUser.id, body);
+      sendMessageSupabase(activeConv.id, currentUser.id, body).catch((err) => {
+        console.error("Error sending message to Supabase:", err);
+        toast.error("Couldn't send message to backend — try again.");
+      });
     }
 
     setConversations((prev) =>

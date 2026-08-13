@@ -106,7 +106,9 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
       return next;
     });
     if (isSupabaseConfigured && currentUser?.id) {
-      joinCommunitySupabase(currentUser.id, id);
+      joinCommunitySupabase(currentUser.id, id).catch((err) => {
+        console.error("Error joining community in Supabase:", err);
+      });
     }
   };
 
@@ -117,7 +119,9 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
       return next;
     });
     if (isSupabaseConfigured && currentUser?.id) {
-      leaveCommunitySupabase(currentUser.id, id);
+      leaveCommunitySupabase(currentUser.id, id).catch((err) => {
+        console.error("Error leaving community in Supabase:", err);
+      });
     }
   };
 

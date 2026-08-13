@@ -388,58 +388,65 @@ export function PostProvider({ children }: { children: ReactNode }) {
   );
 
   const toggleLike = useCallback(
-    async (id: string) => {
+    (id: string) => {
+      let wasLiked = false;
       setLikedPostIds((prev) => {
         const next = new Set(prev);
-        const wasLiked = next.has(id);
+        wasLiked = next.has(id);
         if (wasLiked) {
           next.delete(id);
         } else {
           next.add(id);
         }
-        setPosts((ps) =>
-          ps.map((p) =>
-            p.id === id
-              ? { ...p, stats: { ...p.stats, likes: p.stats.likes + (wasLiked ? -1 : 1) } }
-              : p,
-          ),
-        );
-
-        // Persist to Supabase
-        if (isSupabaseConfigured && currentUser?.id) {
-          toggleLikeSupabase(currentUser.id, id, wasLiked);
-        }
-
         return next;
       });
+
+      setPosts((ps) =>
+        ps.map((p) =>
+          p.id === id
+            ? { ...p, stats: { ...p.stats, likes: Math.max(0, p.stats.likes + (wasLiked ? -1 : 1)) } }
+            : p,
+        ),
+      );
+
+      if (isSupabaseConfigured && currentUser?.id) {
+        toggleLikeSupabase(currentUser.id, id, wasLiked).catch((err) => {
+          console.error("Error saving like to Supabase:", err);
+          toast.error("Couldn't save your like state — please try again.");
+        });
+      }
     },
     [currentUser],
   );
 
   const toggleRepost = useCallback(
     (id: string) => {
+      let wasReposted = false;
       setRepostedPostIds((prev) => {
         const next = new Set(prev);
-        const wasReposted = next.has(id);
+        wasReposted = next.has(id);
         if (wasReposted) {
           next.delete(id);
         } else {
           next.add(id);
         }
-        setPosts((ps) =>
-          ps.map((p) =>
-            p.id === id
-              ? { ...p, stats: { ...p.stats, reposts: p.stats.reposts + (wasReposted ? -1 : 1) } }
-              : p,
-          ),
-        );
-
-        if (isSupabaseConfigured && currentUser?.id) {
-          toggleRepostSupabase(currentUser.id, id, wasReposted);
-        }
-
         return next;
       });
+
+      setPosts((ps) =>
+        ps.map((p) =>
+          p.id === id
+            ? { ...p, stats: { ...p.stats, reposts: Math.max(0, p.stats.reposts + (wasReposted ? -1 : 1)) } }
+            : p,
+        ),
+      );
+
+      if (isSupabaseConfigured && currentUser?.id) {
+        toggleRepostSupabase(currentUser.id, id, wasReposted).catch((err) => {
+          console.error("Error saving repost to Supabase:", err);
+          toast.error("Couldn't save repost state");
+        });
+      }
     },
     [currentUser],
   );
