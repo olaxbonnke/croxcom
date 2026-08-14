@@ -194,18 +194,20 @@ function FeedPage() {
     | { type: "ad"; data: (typeof ADS)[0] }
   > = [];
 
+  const MAX_NEWS_SHOWN = 5;
+  const cappedNews = aiNews.slice(0, MAX_NEWS_SHOWN);
   let newsIdx = 0;
 
-  // If no user posts yet, populate Trend feed with live AI & tech news!
   if (posts.length === 0) {
-    aiNews.forEach((newsArticle) => {
+    // No posts yet — show capped news articles as the feed content
+    cappedNews.forEach((newsArticle) => {
       trendItems.push({ type: "news", data: newsArticle });
     });
   } else {
     posts.forEach((post, i) => {
-      // Interleave news every 2 posts
-      if (i % 2 === 0 && newsIdx < aiNews.length) {
-        trendItems.push({ type: "news", data: aiNews[newsIdx++] });
+      // Interleave a news article every 2 posts (consistent cadence)
+      if (i % 2 === 0 && newsIdx < cappedNews.length) {
+        trendItems.push({ type: "news", data: cappedNews[newsIdx++] });
       }
       trendItems.push({ type: "post", data: post });
 
@@ -215,6 +217,11 @@ function FeedPage() {
         trendItems.push({ type: "ad", data: ADS[adIndex] });
       }
     });
+
+    // If posts exist but fewer than 4, append remaining capped news after posts
+    while (newsIdx < cappedNews.length) {
+      trendItems.push({ type: "news", data: cappedNews[newsIdx++] });
+    }
   }
 
   return (

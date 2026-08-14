@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useAuth } from "@/lib/AuthContext";
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { useLibrary, type LibraryItem } from "@/lib/LibraryContext";
@@ -12,6 +13,7 @@ type Tab = "Main Library" | "My Library";
 
 export function LibraryPage() {
   const { items, savedIds, toggleSave, isSaved, addItemToLibrary } = useLibrary();
+  const { currentUser } = useAuth();
 
   const [activeTab, setActiveTab] = useState<Tab>("Main Library");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
@@ -24,6 +26,8 @@ export function LibraryPage() {
   const [newPrompt, setNewPrompt] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [newCategory, setNewCategory] = useState<LibraryItem["category"]>("UI/UX");
+  const [newTags, setNewTags] = useState("");
+  const [newImageUrl, setNewImageUrl] = useState("");
 
   const categories = ["All", "UI/UX", "Model Architecture", "AI Art", "Workflow"];
 
@@ -300,6 +304,130 @@ export function LibraryPage() {
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── SUBMIT PROMPT MODAL ── */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-md rounded-2xl border border-border/80 bg-background shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-border/70 px-5 py-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <h3 className="font-semibold text-foreground">Submit a Prompt</h3>
+              </div>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="rounded-full p-1.5 hover:bg-accent/60 cursor-pointer"
+              >
+                <X className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </div>
+
+            {/* Form Body */}
+            <div className="p-5 space-y-3.5 max-h-[70vh] overflow-y-auto scrollbar-none">
+              <div>
+                <label className="font-mono text-xs text-muted-foreground mb-1 block">Title *</label>
+                <input
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="e.g. Glassmorphism Card Layout"
+                  className="w-full rounded-md border border-border bg-card/60 px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/60 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="font-mono text-xs text-muted-foreground mb-1 block">Prompt *</label>
+                <textarea
+                  value={newPrompt}
+                  onChange={(e) => setNewPrompt(e.target.value)}
+                  placeholder="The full AI prompt..."
+                  rows={3}
+                  className="w-full resize-none rounded-md border border-border bg-card/60 px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/60 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="font-mono text-xs text-muted-foreground mb-1 block">Description</label>
+                <textarea
+                  value={newDesc}
+                  onChange={(e) => setNewDesc(e.target.value)}
+                  placeholder="Brief description of what this prompt creates..."
+                  rows={2}
+                  className="w-full resize-none rounded-md border border-border bg-card/60 px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/60 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="font-mono text-xs text-muted-foreground mb-1 block">Category</label>
+                <select
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value as LibraryItem["category"])}
+                  className="w-full rounded-md border border-border bg-card/60 px-3 py-2 font-mono text-sm text-foreground focus:border-primary/60 focus:outline-none"
+                >
+                  {categories.filter((c) => c !== "All").map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="font-mono text-xs text-muted-foreground mb-1 block">Image URL (optional)</label>
+                <input
+                  value={newImageUrl}
+                  onChange={(e) => setNewImageUrl(e.target.value)}
+                  placeholder="https://example.com/image.png"
+                  className="w-full rounded-md border border-border bg-card/60 px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/60 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="font-mono text-xs text-muted-foreground mb-1 block">Tags (comma-separated)</label>
+                <input
+                  value={newTags}
+                  onChange={(e) => setNewTags(e.target.value)}
+                  placeholder="e.g. ui, glass, card"
+                  className="w-full rounded-md border border-border bg-card/60 px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/60 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-border/70 px-5 py-4 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="px-4 py-2 rounded-md font-mono text-xs text-muted-foreground hover:text-foreground hover:bg-accent/40 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!newTitle.trim() || !newPrompt.trim()) return;
+                  addItemToLibrary({
+                    title: newTitle.trim(),
+                    prompt: newPrompt.trim(),
+                    description: newDesc.trim() || newTitle.trim(),
+                    category: newCategory,
+                    author: currentUser,
+                    imageUrl: newImageUrl.trim() || `https://picsum.photos/seed/${Date.now()}/800/600`,
+                    tags: newTags.split(",").map((t) => t.trim()).filter(Boolean),
+                  });
+                  setShowAddModal(false);
+                  setNewTitle("");
+                  setNewPrompt("");
+                  setNewDesc("");
+                  setNewTags("");
+                  setNewImageUrl("");
+                  setNewCategory("UI/UX");
+                }}
+                disabled={!newTitle.trim() || !newPrompt.trim()}
+                className="px-5 py-2 rounded-md bg-primary font-mono text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 cursor-pointer shadow-sm"
+              >
+                Submit Prompt
+              </button>
             </div>
           </div>
         </div>

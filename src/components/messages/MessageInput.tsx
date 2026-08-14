@@ -1,4 +1,4 @@
-import { useState, KeyboardEvent } from "react";
+import { useState, useRef, useEffect, KeyboardEvent } from "react";
 import { Send } from "lucide-react";
 
 interface MessageInputProps {
@@ -7,6 +7,15 @@ interface MessageInputProps {
 
 export function MessageInput({ onSend }: MessageInputProps) {
   const [text, setText] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize textarea based on content (cross-browser fallback for field-sizing: content)
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 120) + "px";
+  }, [text]);
 
   const handleSend = () => {
     if (text.trim()) {
@@ -25,6 +34,7 @@ export function MessageInput({ onSend }: MessageInputProps) {
   return (
     <div className="flex items-end gap-2 border-t border-border/70 bg-background/95 px-4 py-3 backdrop-blur-md">
       <textarea
+        ref={textareaRef}
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={handleKeyDown}

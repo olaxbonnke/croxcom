@@ -529,3 +529,20 @@ alter table public.posts add column if not exists search_vector tsvector
   generated always as (to_tsvector('english', coalesce(title, '') || ' ' || coalesce(content, ''))) stored;
 create index if not exists idx_posts_search on public.posts using gin(search_vector);
 
+-- ============================================================================
+-- RPC: ATOMIC CONVERSATION CREATION
+-- ============================================================================
+-- Bypasses per-row RLS on conversation_participants so that the initiator
+-- can add both themselves and the other user in a single atomic operation.
+create or replace function public.create_conversation_with(other_user_id uuid)
+returns uuid as $$
+declare
+  new_conv_id uuid;
+begin
+  insert into public.conversations default values returning id into new_conv_id;
+  insert into public.conversation_participants (conversation_id, user_id) values
+    (new_conv_id, auth.uid()),
+    (new_conv_id, other_user_id);
+  return new_conv_id;
+end;
+$$ language plpgsql security definer;

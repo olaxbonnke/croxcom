@@ -137,28 +137,36 @@ function MessagesPage() {
     const existing = conversations.find((c) => c.participant.handle === user.handle);
     if (existing) {
       setActiveId(existing.id);
-    } else {
-      let convId = `conv-${Date.now()}`;
-
-      // Create real conversation in Supabase if configured
-      if (isSupabaseConfigured && currentUser?.id) {
-        const created = await createConversationSupabase(currentUser.id, user.id);
-        if (created) {
-          convId = created.id;
-        }
-      }
-
-      const newConv: MockConversation = {
-        id: convId,
-        participant: user,
-        lastMessage: "Say hello!",
-        lastTime: "Just now",
-        unread: 0,
-        messages: [],
-      };
-      setConversations((prev) => [newConv, ...prev]);
-      setActiveId(newConv.id);
+      setShowNewModal(false);
+      setSearchQuery("");
+      return;
     }
+
+    let convId: string | null = null;
+
+    if (isSupabaseConfigured && currentUser?.id) {
+      const created = await createConversationSupabase(currentUser.id, user.id);
+      if (created) {
+        convId = created.id;
+      } else {
+        toast.error("Couldn't start conversation — please try again.");
+        return;
+      }
+    } else {
+      // Mock mode fallback
+      convId = `conv-${Date.now()}`;
+    }
+
+    const newConv: MockConversation = {
+      id: convId,
+      participant: user,
+      lastMessage: "Say hello!",
+      lastTime: "Just now",
+      unread: 0,
+      messages: [],
+    };
+    setConversations((prev) => [newConv, ...prev]);
+    setActiveId(newConv.id);
     setShowNewModal(false);
     setSearchQuery("");
   };

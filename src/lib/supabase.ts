@@ -946,7 +946,9 @@ export async function uploadBannerSupabase(
 }
 
 /**
- * Create a Conversation between two users in Supabase
+ * Create a Conversation between two users in Supabase.
+ * Uses a security definer RPC to atomically create the conversation
+ * and add both participants, bypassing per-row RLS restrictions.
  */
 export async function createConversationSupabase(
   userId: string,
@@ -954,30 +956,16 @@ export async function createConversationSupabase(
 ): Promise<{ id: string } | null> {
   if (!isSupabaseConfigured) return null;
 
-  // 1. Create the conversation
-  const { data: conv, error: convError } = await supabase
-    .from("conversations")
-    .insert({})
-    .select("id")
-    .single();
+  const { data, error } = await supabase.rpc('create_conversation_with', {
+    other_user_id: participantId,
+  });
 
-  if (convError || !conv) {
-    console.error("Error creating conversation:", convError);
+  if (error || !data) {
+    console.error('Error creating conversation via RPC:', error);
     return null;
   }
 
-  // 2. Add both participants
-  const { error: partError } = await supabase.from("conversation_participants").insert([
-    { conversation_id: conv.id, user_id: userId },
-    { conversation_id: conv.id, user_id: participantId },
-  ]);
-
-  if (partError) {
-    console.error("Error adding conversation participants:", partError);
-    return null;
-  }
-
-  return conv;
+  return { id: data as string };
 }
 
 /**
