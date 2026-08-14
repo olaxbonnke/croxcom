@@ -130,16 +130,12 @@ function AuthPage() {
     };
   }, [userHandle, currentUser?.id]);
 
-  // Automatically set correct phase based on authentication & onboarding status
+  // Automatically navigate authenticated users to home feed
   useEffect(() => {
-    if (!isAuthenticated) {
-      setPhase("login");
-    } else if (isAuthenticated && !hasCompletedOnboarding) {
-      setPhase("onboarding");
-    } else if (isAuthenticated && hasCompletedOnboarding) {
+    if (isAuthenticated && phase !== "onboarding") {
       navigate({ to: "/", replace: true });
     }
-  }, [isAuthenticated, hasCompletedOnboarding, navigate]);
+  }, [isAuthenticated, phase, navigate]);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -649,11 +645,18 @@ function AuthPage() {
               )}
 
               {/* Submit / Finish Button */}
-              <div className="pt-2">
+              <div className="pt-2 flex flex-col sm:flex-row items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate({ to: "/", replace: true })}
+                  className="w-full sm:w-1/3 py-3 px-4 font-mono text-xs text-muted-foreground hover:text-foreground border border-border/60 rounded-lg hover:bg-accent/30 cursor-pointer transition-colors"
+                >
+                  Skip for now
+                </button>
                 <button
                   type="submit"
                   disabled={isHandleAvailable === false}
-                  className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-3 px-4 font-mono text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full sm:w-2/3 flex items-center justify-center gap-2 rounded-lg bg-primary py-3 px-4 font-mono text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Sparkles className="h-4 w-4" />
                   <span>Finish Setup & Enter Feed</span>

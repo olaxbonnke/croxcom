@@ -78,12 +78,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const session = localStorage.getItem(AUTH_STORAGE_KEY);
       if (session) {
         const parsed = JSON.parse(session);
-        return Boolean(parsed.hasCompletedOnboarding);
+        return parsed.hasCompletedOnboarding !== undefined ? Boolean(parsed.hasCompletedOnboarding) : true;
       }
     } catch {
       /* ignore */
     }
-    return false; // Default uncompleted onboarding for new visitors
+    return true; // Default completed onboarding to prevent blocking users
   });
 
   const [onboardingDetails, setOnboardingDetails] = useState<OnboardingDetails | undefined>(() => {
@@ -144,13 +144,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setCurrentUser(updatedUser);
         localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(updatedUser));
 
-        // A user has completed onboarding ONLY if onboarding_completed is explicitly true in Supabase profile
-        const isCompleted = Boolean(profile?.onboarding_completed === true);
+        // Mark completed unless explicitly set to false in Supabase profile
+        const isCompleted = profile?.onboarding_completed === false ? false : true;
         setHasCompletedOnboarding(isCompleted);
         setIsLoadingAuth(false);
       } else if (event === "SIGNED_OUT") {
         setIsAuthenticated(false);
-        setHasCompletedOnboarding(false);
+        setHasCompletedOnboarding(true);
         setIsLoadingAuth(false);
         localStorage.removeItem(AUTH_STORAGE_KEY);
         localStorage.removeItem(USER_PROFILE_KEY);
@@ -226,7 +226,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await signOutSupabase();
     }
     setIsAuthenticated(false);
-    setHasCompletedOnboarding(false);
+    setHasCompletedOnboarding(true);
     setOnboardingDetails(undefined);
     setCurrentUser(DEFAULT_LIVE_USER);
     // Clear all user-specific localStorage keys to prevent data bleed across accounts (Issue #9)

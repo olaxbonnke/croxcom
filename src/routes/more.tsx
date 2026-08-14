@@ -80,9 +80,9 @@ export function MorePage() {
     document.documentElement.lang = language;
   }, [language]);
 
-  const handleLogout = () => {
-    logout();
-    navigate({ to: "/auth" });
+  const handleLogout = async () => {
+    await logout();
+    navigate({ to: "/", replace: true });
   };
 
   const toggleSection = (section: string) => {

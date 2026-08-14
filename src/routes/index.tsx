@@ -49,27 +49,11 @@ export const Route = createFileRoute("/")({
 });
 
 function RootRoute() {
-  const { isAuthenticated, hasCompletedOnboarding, isLoadingAuth } = useAuth();
-  const navigate = useNavigate();
+  const { isAuthenticated, isLoadingAuth } = useAuth();
 
-  useEffect(() => {
-    if (!isLoadingAuth && isAuthenticated && !hasCompletedOnboarding) {
-      navigate({ to: "/auth", replace: true });
-    }
-  }, [isLoadingAuth, isAuthenticated, hasCompletedOnboarding, navigate]);
-
-  // On Server-Side Rendering (SSR), always render LandingPage so the server HTML payload
-  // contains full headlines, CTAs, and semantic markup for instant browser paint!
-  if (typeof window === "undefined" || !isAuthenticated) {
+  // On SSR or when loading/unauthenticated, render LandingPage
+  if (typeof window === "undefined" || isLoadingAuth || !isAuthenticated) {
     return <LandingPage />;
-  }
-
-  if (isLoadingAuth) {
-    return <LandingPage />;
-  }
-
-  if (!hasCompletedOnboarding) {
-    return null;
   }
 
   return <FeedPage />;
