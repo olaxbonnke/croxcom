@@ -3,7 +3,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { useLibrary, type LibraryItem } from "@/lib/LibraryContext";
-import { Bookmark, Heart, Library, Sparkles, X, Copy, Check, Filter } from "lucide-react";
+import { Bookmark, Heart, Library, Sparkles, X, Copy, Check, Filter, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/library")({
   component: LibraryPage,
@@ -53,9 +53,10 @@ export function LibraryPage() {
           <button
             type="button"
             onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1 font-mono text-xs font-semibold text-primary-foreground hover:opacity-90 transition-opacity cursor-pointer shadow-sm"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-1.5 font-mono text-xs font-semibold text-primary-foreground hover:opacity-90 transition-all cursor-pointer shadow-md shadow-primary/20 active:scale-[0.98]"
           >
-            <span>+ Submit Prompt</span>
+            <Plus className="h-4 w-4 stroke-[2.5]" />
+            <span>Add to Library</span>
           </button>
         </div>
         <p className="font-mono text-xs text-muted-foreground mt-0.5">
@@ -183,8 +184,16 @@ export function LibraryPage() {
             })}
           </div>
         ) : (
-          <div className="p-12 text-center font-mono text-sm text-muted-foreground">
-            &gt; no items found in {activeTab.toLowerCase()}
+          <div className="p-12 text-center font-mono text-sm text-muted-foreground flex flex-col items-center gap-3">
+            <div>&gt; no items found in {activeTab.toLowerCase()}</div>
+            <button
+              type="button"
+              onClick={() => setShowAddModal(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-1.5 font-mono text-xs font-semibold text-primary-foreground hover:opacity-90 transition-all cursor-pointer shadow-md shadow-primary/20"
+            >
+              <Plus className="h-4 w-4 stroke-[2.5]" />
+              <span>Add to Library</span>
+            </button>
           </div>
         )}
       </div>
@@ -317,7 +326,7 @@ export function LibraryPage() {
             <div className="flex items-center justify-between border-b border-border/70 px-5 py-4">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-primary" />
-                <h3 className="font-semibold text-foreground">Submit a Prompt</h3>
+                <h3 className="font-semibold text-foreground">Add to Library</h3>
               </div>
               <button
                 onClick={() => setShowAddModal(false)}
@@ -426,7 +435,7 @@ export function LibraryPage() {
                 disabled={!newTitle.trim() || !newPrompt.trim()}
                 className="px-5 py-2 rounded-md bg-primary font-mono text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 cursor-pointer shadow-sm"
               >
-                Submit Prompt
+                Add to Library
               </button>
             </div>
           </div>
